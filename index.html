@@ -1389,8 +1389,10 @@ function scheduleNotif(){
 }
 // ── HEADER BUTTON ──
 function headerBtnClick(){
-  if(curTab==='profile') saveMainSettings();
-  else syncBolt();
+  if(curTab==='profile'){
+    if(_pTab==='auto') saveAutoSettings();
+    else saveMainSettings();
+  } else syncBolt();
 }
 function updateHeaderBtn(){
   const lbl=document.getElementById('sync-lbl');
