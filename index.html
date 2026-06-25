@@ -2069,7 +2069,8 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
       days.map(d=>{
         const day=byDay[d];
         const total=day.bolt+day.other;
-        const vc2=calcVarCosts(day.km);
+        const dayKm=state.settings.boltKmEnabled ? day.km : getOdometerKmForDay(d);
+        const vc2=calcVarCosts(dayKm);
         const corr=day.correction||0;
         const net2=total-vc2.total+corr;
         const boltW=Math.min(92,(day.bolt/maxTotal)*100);
