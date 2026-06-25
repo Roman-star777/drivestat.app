@@ -1429,34 +1429,40 @@ function checkArchive(){
 }
 
 function getOdometerKmForPeriod(from, to){
-  // Sort log by date
-  const log=(state.odometerLog||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
-  if(log.length<2) return 0;
-  // Find entries covering the period
-  const inPeriod=log.filter(e=>e.date>=from&&e.date<=to);
-  if(inPeriod.length===0) return 0;
-  if(inPeriod.length===1){
-    // Find the entry just before the period start
-    const before=log.filter(e=>e.date<from).pop();
-    if(!before) return 0;
-    return Math.max(0, inPeriod[inPeriod.length-1].value - before.value);
-  }
-  return Math.max(0, inPeriod[inPeriod.length-1].value - inPeriod[0].value);
+  const log=(state.odometerLog||[]).filter(e=>e.km>0).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  if(log.length===0) return 0;
+  const base=state.settings.odometerBase||0;
+  // Last entry in or before period end
+  const upTo=log.filter(e=>e.date<=to);
+  if(upTo.length===0) return 0;
+  const latest=upTo[upTo.length-1];
+  // First entry in or after period start (or base point)
+  const fromEntry=log.filter(e=>e.date>=from&&e.date<=to);
+  const before=log.filter(e=>e.date<from).pop();
+  const startKm=before?before.km:(base||latest.km);
+  return Math.max(0, latest.km - startKm);
 }
 function getOdometerKmForDay(day){
-  const log=(state.odometerLog||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const log=(state.odometerLog||[]).filter(e=>e.km>0).slice().sort((a,b)=>a.date.localeCompare(b.date));
   const idx=log.findIndex(e=>e.date===day);
   if(idx<0) return 0;
-  if(idx===0) return 0;
-  return Math.max(0, log[idx].value - log[idx-1].value);
+  const base=state.settings.odometerBase||0;
+  const prev=idx>0?log[idx-1].km:base;
+  if(!prev) return 0;
+  return Math.max(0, log[idx].km - prev);
 }
 function getOdometerKmForMonth(mo){
-  const log=(state.odometerLog||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const log=(state.odometerLog||[]).filter(e=>e.km>0).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const base=state.settings.odometerBase||0;
+  // Last entry of this month
   const inMo=log.filter(e=>e.date.startsWith(mo));
   if(inMo.length===0) return 0;
-  const before=log.filter(e=>e.date<inMo[0].date).pop();
-  const start=before?before.value:inMo[0].value;
-  return Math.max(0, inMo[inMo.length-1].value - start);
+  const latest=inMo[inMo.length-1];
+  // Starting point: last entry before this month, or odometerBase
+  const before=log.filter(e=>e.date<mo+'-01').pop();
+  const startKm=before?before.km:base;
+  if(!startKm) return 0;
+  return Math.max(0, latest.km - startKm);
 }
 
 function calcVarCosts(km){
