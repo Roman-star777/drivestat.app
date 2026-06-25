@@ -3207,8 +3207,9 @@ function renderProfile(){
 }
 
 function saveMainSettings(){
-  state.settings.dailyGoal=parseInt(document.getElementById('st-goal')?.value)||1800;
-  save(); showToast(t('settingsSaved')); renderDash();
+  const v=parseInt(document.getElementById('st-goal')?.value);
+  if(!isNaN(v)&&v>0) state.settings.dailyGoal=v;
+  save(); showToast(t('settingsSaved')); renderProfile(); renderDash();
 }
 function saveTaxSettings(){
   state.settings.incomeTaxRate=parseInt(document.getElementById('st-taxrate')?.value)||15;
@@ -3241,10 +3242,10 @@ function saveAutoSettings(){
   const fp=parseFloat(document.getElementById('st-fuel-p')?.value);
   const fc=parseFloat(document.getElementById('st-fuel-c')?.value);
   const am=parseFloat(document.getElementById('st-amort')?.value);
-  s.fuelPrice = isNaN(fp)?0:fp;
-  s.fuelCons  = isNaN(fc)?0:fc;   // empty → 0 → no fuel cost
-  s.amort     = isNaN(am)?0:am;   // empty → 0 → no amortization
-  save();showToast(t('settingsSaved'));renderDash();
+  if(!isNaN(fp)&&fp>0) s.fuelPrice=fp;
+  if(!isNaN(fc)) s.fuelCons=fc;
+  if(!isNaN(am)) s.amort=am;
+  save(); showToast(t('settingsSaved')); renderProfile(); renderDash();
 }
 
 // ── SETTINGS ACTIONS ──
@@ -3257,12 +3258,11 @@ function toggleKmSource(v){ state.settings.boltKmEnabled=v; save(); renderProfil
 
 function addOdometer(){
   const d=document.getElementById('odo-date')?.value||today();
-  const v=parseInt(document.getElementById('odo-val')?.value)||0;
+  const v=parseInt(document.getElementById('odo-km')?.value)||0;
   if(!v){showToast(t('fillAll'));return;}
   if(!state.odometerLog)state.odometerLog=[];
-  // Replace if same date exists
   state.odometerLog=state.odometerLog.filter(e=>e.date!==d);
-  state.odometerLog.push({id:Date.now()+'',date:d,value:v});
+  state.odometerLog.push({id:Date.now()+'',date:d,km:v});
   save();showToast(t('added'));renderProfile();
 }
 
@@ -3320,9 +3320,9 @@ function addWeekly(){
 }
 
 function addRecurring(){
-  const n=document.getElementById('rec-name')?.value.trim();
-  const a=parseInt(document.getElementById('rec-amt')?.value)||0;
-  const d=parseInt(document.getElementById('rec-day')?.value)||1;
+  const n=document.getElementById('ri-name')?.value.trim();
+  const a=parseInt(document.getElementById('ri-amt')?.value)||0;
+  const d=parseInt(document.getElementById('ri-day')?.value)||1;
   if(!n||!a){showToast(t('fillAll'));return;}
   if(!state.recurringIncome)state.recurringIncome=[];
   state.recurringIncome.push({id:Date.now()+'',name:n,amount:a,dueDay:d});
@@ -3339,9 +3339,9 @@ function toggleForecast(mode){
 }
 
 function addOneTimeIncome(){
-  const n=document.getElementById('inc-name')?.value.trim();
-  const a=parseInt(document.getElementById('inc-amt')?.value)||0;
-  const d=document.getElementById('inc-date')?.value||today();
+  const n=document.getElementById('oi-name')?.value.trim();
+  const a=parseInt(document.getElementById('oi-amt')?.value)||0;
+  const d=document.getElementById('oi-date')?.value||today();
   if(!n||!a){showToast(t('fillAll'));return;}
   if(!state.oneTimeIncome)state.oneTimeIncome=[];
   state.oneTimeIncome.push({id:Date.now()+'',name:n,amount:a,date:d});
