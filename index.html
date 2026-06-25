@@ -3207,8 +3207,11 @@ function renderProfile(){
 }
 
 function saveMainSettings(){
-  const v=parseInt(document.getElementById('st-goal')?.value);
-  if(!isNaN(v)&&v>0) state.settings.dailyGoal=v;
+  const el=document.getElementById('st-goal');
+  if(el){
+    const v=parseInt(el.value);
+    if(!isNaN(v)&&v>0) state.settings.dailyGoal=v;
+  }
   save(); showToast(t('settingsSaved')); renderProfile(); renderDash();
 }
 function saveTaxSettings(){
@@ -3239,13 +3242,22 @@ function listSection(lbl,arr,color,delFn,subFn,useId=false){
 
 function saveAutoSettings(){
   const s=state.settings;
-  const fp=parseFloat(document.getElementById('st-fuel-p')?.value);
-  const fc=parseFloat(document.getElementById('st-fuel-c')?.value);
-  const am=parseFloat(document.getElementById('st-amort')?.value);
-  if(!isNaN(fp)&&fp>0) s.fuelPrice=fp;
-  if(!isNaN(fc)) s.fuelCons=fc;
-  if(!isNaN(am)) s.amort=am;
-  save(); showToast(t('settingsSaved')); renderProfile(); renderDash();
+  // Read ALL fields BEFORE any render call
+  const fpEl=document.getElementById('st-fuel-p');
+  const fcEl=document.getElementById('st-fuel-c');
+  const amEl=document.getElementById('st-amort');
+  const fp=fpEl?parseFloat(fpEl.value):NaN;
+  const fc=fcEl?parseFloat(fcEl.value):NaN;
+  const am=amEl?parseFloat(amEl.value):NaN;
+  // Only update if field exists and has a valid value
+  if(fpEl&&!isNaN(fp)) s.fuelPrice=fp;
+  if(fcEl&&!isNaN(fc)) s.fuelCons=fc;
+  if(amEl&&!isNaN(am)) s.amort=am;
+  save();
+  showToast(t('settingsSaved'));
+  // Render AFTER saving so fields show correct saved values
+  renderProfile();
+  renderDash();
 }
 
 // ── SETTINGS ACTIONS ──
