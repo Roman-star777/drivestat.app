@@ -6,6 +6,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
 <title>DriveStat</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL = "https://jdjioopglufruosvtrwc.supabase.co";
+const SUPABASE_KEY = "sb_publishable_smK7fN6e4jkBgGFHcsD6dA_rbQDemr1";
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</script>
 <meta name="theme-color" content="#082434">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -441,21 +447,25 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
     <div class="ln-brand">Drive<span>Stat</span></div>
     <div class="ln-slogan">Знай скільки ти реально заробив</div>
   </div>
-  <div class="role-row">
-    <button class="role-btn sel" id="role-driver" onclick="selectRole('driver')">
-      <span class="role-icon">🧑‍✈️</span>Водій
-    </button>
-    <button class="role-btn" id="role-admin" onclick="selectRole('admin')">
-      <span class="role-icon">📊</span>Адмін
-    </button>
-  </div>
   <div class="ln-form">
-    <label class="ln-lbl">ІМ'Я</label>
-    <input class="ln-inp" id="ln-name" type="text" placeholder="Roman Yarema" autocomplete="name">
-    <label class="ln-lbl">ПАРОЛЬ</label>
-    <input class="ln-inp" id="ln-pass" type="password" placeholder="••••••">
-    <button class="ln-btn" onclick="doLogin()">Увійти →</button>
-    <div class="ln-err" id="ln-err">Невірне ім'я або пароль</div>
+    <div id="ln-name-row" style="display:none;">
+      <label class="ln-lbl">ІМ'Я</label>
+      <input class="ln-inp" id="ln-name" type="text" placeholder="Roman Yarema" autocomplete="name">
+    </div>
+    <label class="ln-lbl">EMAIL</label>
+    <input class="ln-inp" id="ln-email" type="email" placeholder="email@example.com" autocomplete="email">
+    <div id="ln-pass-row">
+      <label class="ln-lbl">ПАРОЛЬ</label>
+      <input class="ln-inp" id="ln-pass" type="password" placeholder="••••••" autocomplete="current-password">
+    </div>
+    <button class="ln-btn" id="ln-submit" onclick="doLogin()">Увійти →</button>
+    <div class="ln-err" id="ln-err" style="display:none;"></div>
+    <div style="text-align:center;margin-top:10px;font-size:12px;color:rgba(255,255,255,.35);" id="ln-switch">
+      Немає акаунту? <a href="#" onclick="toggleAuthMode('register')" style="color:#5EE0CE;">Зареєструватись</a>
+    </div>
+    <div style="text-align:center;margin-top:6px;" id="ln-reset-link">
+      <a href="#" onclick="toggleAuthMode('reset')" style="font-size:11px;color:rgba(255,255,255,.25);">Забув пароль?</a>
+    </div>
   </div>
   <div class="ln-ver">DriveStat v3.0</div>
 </div>
@@ -599,30 +609,58 @@ function daysLeftInMonth(){
   const n=new Date(); const last=new Date(n.getFullYear(),n.getMonth()+1,0).getDate();
   return Math.max(1, last-n.getDate()+1);
 }
-function save(){ localStorage.setItem('ds3', JSON.stringify(state)); }
+// ── SAVE: localStorage + cloud sync ──
+let _saveTimer = null;
+function save(){
+  localStorage.setItem('ds3', JSON.stringify(state));
+  // Debounce cloud save — 2 seconds after last change
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(saveToCloud, 2000);
+}
+async function saveToCloud(){
+  const session = await _sb.auth.getSession();
+  if(!session?.data?.session) return;
+  const uid = session.data.session.user.id;
+  const stateToSave = JSON.parse(JSON.stringify(state));
+  delete stateToSave.user; delete stateToSave.role;
+  await _sb.from('user_state').upsert({id: uid, state: stateToSave, updated_at: new Date().toISOString()});
+}
+async function loadFromCloud(){
+  const session = await _sb.auth.getSession();
+  if(!session?.data?.session) return false;
+  const uid = session.data.session.user.id;
+  const {data} = await _sb.from('user_state').select('state').eq('id', uid).single();
+  if(data?.state && Object.keys(data.state).length > 0){
+    const p = data.state;
+    state = {...state, ...p};
+    migrateState(p);
+    return true;
+  }
+  return false;
+}
+function migrateState(p){
+  if(p.otherIncome&&p.otherIncome.length>0&&(!p.oneTimeIncome||p.oneTimeIncome.length===0)){
+    state.oneTimeIncome=p.otherIncome;
+  }
+  if(state.settings){
+    if(state.settings.fuelConsumption!=null && state.settings.fuelCons==null){
+      state.settings.fuelCons=state.settings.fuelConsumption;
+    }
+    if(state.settings.amortPerKm!=null && state.settings.amort==null){
+      state.settings.amort=state.settings.amortPerKm;
+    }
+    delete state.settings.fuelConsumption;
+    delete state.settings.amortPerKm;
+  }
+  _dedupeCorrections();
+}
 function load(){
   try{
     const s=localStorage.getItem('ds3');
     if(s){
       const p=JSON.parse(s);
       state={...state,...p};
-      // migrate old otherIncome → oneTimeIncome
-      if(p.otherIncome&&p.otherIncome.length>0&&(!p.oneTimeIncome||p.oneTimeIncome.length===0)){
-        state.oneTimeIncome=p.otherIncome;
-      }
-      // migrate legacy field names → canonical (used by calcVarCosts)
-      if(state.settings){
-        if(state.settings.fuelConsumption!=null && state.settings.fuelCons==null){
-          state.settings.fuelCons=state.settings.fuelConsumption;
-        }
-        if(state.settings.amortPerKm!=null && state.settings.amort==null){
-          state.settings.amort=state.settings.amortPerKm;
-        }
-        delete state.settings.fuelConsumption;
-        delete state.settings.amortPerKm;
-      }
-      // collapse duplicate "Корекція балансу" entries per day → keep only the last
-      _dedupeCorrections();
+      migrateState(p);
     }
   }catch(e){}
 }
@@ -1625,7 +1663,7 @@ function showApp(){
     window._autoSyncInterval=setInterval(()=>{ if(state.user) syncBolt(true); }, 30000);
   }
 }
-function logout(){ state.user=null; save(); location.reload(); }
+async function logout(){ await _sb.auth.signOut(); state.user=null; localStorage.removeItem("ds3"); location.reload(); }
 
 // ── SYNC ──
 async function syncBolt(silent=false){
@@ -3429,6 +3467,23 @@ load();
 checkRollover();
 checkArchive();
 document.getElementById('ln-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('ln-email')?.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+
+// ── AUTO LOGIN: check existing session ──
+(async()=>{
+  try{
+    const {data:{session}} = await _sb.auth.getSession();
+    if(session){
+      state.user = session.user.user_metadata?.name || session.user.email.split('@')[0];
+      state.role = 'driver';
+      const loaded = await loadFromCloud();
+      if(!loaded) load();
+      if(!state.onboardingDone) startOnboarding(); else showApp();
+    } else {
+      load();
+    }
+  }catch(e){ load(); }
+})();
 if(state.user){
   if(!state.onboardingDone && state.role==='driver'){
     startOnboarding();
