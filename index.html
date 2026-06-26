@@ -1636,20 +1636,72 @@ function selectRole(r){
   document.getElementById('role-driver').classList.toggle('sel',r==='driver');
   document.getElementById('role-admin').classList.toggle('sel',r==='admin');
 }
-function doLogin(){
-  const name=document.getElementById('ln-name').value.trim();
-  const pass=document.getElementById('ln-pass').value;
-  const u=USERS[name];
-  if(u&&u.pass===pass&&u.role===selectedRole){
-    state.user=name; state.role=u.role; save();
-    if(!state.onboardingDone && u.role==='driver'){
-      startOnboarding();
+let _authMode = 'login';
+function toggleAuthMode(mode){
+  _authMode = mode;
+  const loginBtn = document.getElementById('ln-submit');
+  const switchEl = document.getElementById('ln-switch');
+  const resetEl = document.getElementById('ln-reset-link');
+  const nameRow = document.getElementById('ln-name-row');
+  const passRow = document.getElementById('ln-pass-row');
+  const err = document.getElementById('ln-err');
+  if(err){ err.style.display='none'; err.style.color='#FF453A'; }
+  if(mode === 'login'){
+    if(loginBtn) loginBtn.textContent = 'Увійти →';
+    if(switchEl) switchEl.innerHTML = 'Немає акаунту? <a href="#" onclick="toggleAuthMode(\'register\')" style="color:#5EE0CE;">Зареєструватись</a>';
+    if(resetEl) resetEl.style.display = 'block';
+    if(nameRow) nameRow.style.display = 'none';
+    if(passRow) passRow.style.display = 'block';
+  } else if(mode === 'register'){
+    if(loginBtn) loginBtn.textContent = 'Зареєструватись →';
+    if(switchEl) switchEl.innerHTML = 'Вже є акаунт? <a href="#" onclick="toggleAuthMode(\'login\')" style="color:#5EE0CE;">Увійти</a>';
+    if(resetEl) resetEl.style.display = 'none';
+    if(nameRow) nameRow.style.display = 'block';
+    if(passRow) passRow.style.display = 'block';
+  } else if(mode === 'reset'){
+    if(loginBtn) loginBtn.textContent = 'Надіслати лист →';
+    if(switchEl) switchEl.innerHTML = '<a href="#" onclick="toggleAuthMode(\'login\')" style="color:#5EE0CE;">← Назад до входу</a>';
+    if(resetEl) resetEl.style.display = 'none';
+    if(nameRow) nameRow.style.display = 'none';
+    if(passRow) passRow.style.display = 'none';
+  }
+}
+async function doLogin(){
+  const email = document.getElementById('ln-email')?.value?.trim();
+  const pass = document.getElementById('ln-pass')?.value;
+  const name = document.getElementById('ln-name')?.value?.trim();
+  const err = document.getElementById('ln-err');
+  const btn = document.getElementById('ln-submit');
+  if(!email){ if(err){err.style.display='block';err.textContent='Введи email';} return; }
+  if(_authMode!=='reset' && !pass){ if(err){err.style.display='block';err.textContent='Введи пароль';} return; }
+  const origText = btn?.textContent;
+  if(btn) btn.textContent = '...';
+  try{
+    if(_authMode === 'register'){
+      const {data,error} = await _sb.auth.signUp({
+        email, password: pass,
+        options:{data:{name: name||email.split('@')[0]}}
+      });
+      if(error) throw error;
+      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Підтверди email і увійди';}
+      toggleAuthMode('login');
+    } else if(_authMode === 'reset'){
+      const {error} = await _sb.auth.resetPasswordForEmail(email, {redirectTo:'https://drivestat.app'});
+      if(error) throw error;
+      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Лист відправлено на '+email;}
     } else {
-      showApp();
+      const {data,error} = await _sb.auth.signInWithPassword({email, password: pass});
+      if(error) throw error;
+      state.user = data.user.user_metadata?.name || email.split('@')[0];
+      state.role = 'driver';
+      const loaded = await loadFromCloud();
+      if(!loaded) load();
+      save();
+      if(!state.onboardingDone) startOnboarding(); else showApp();
     }
-  } else {
-    const el=document.getElementById('ln-err');
-    el.style.display='block'; el.textContent='Невірне ім\'я або пароль';
+  }catch(e){
+    if(err){err.style.display='block';err.style.color='#FF453A';err.textContent=e.message||'Помилка';}
+    if(btn) btn.textContent = origText;
   }
 }
 function showApp(){
