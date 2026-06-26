@@ -1682,8 +1682,9 @@ async function doLogin(){
         email, password: pass,
         options:{data:{name: name||email.split('@')[0]}}
       });
+      console.log('signUp result:', JSON.stringify({data, error}));
       if(error) throw error;
-      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Підтверди email і увійди';}
+      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Увійди.';}
       toggleAuthMode('login');
     } else if(_authMode === 'reset'){
       const {error} = await _sb.auth.resetPasswordForEmail(email, {redirectTo:'https://drivestat.app'});
@@ -1700,7 +1701,8 @@ async function doLogin(){
       if(!state.onboardingDone) startOnboarding(); else showApp();
     }
   }catch(e){
-    const msg = e?.message || e?.error_description || JSON.stringify(e) || 'Помилка';
+    console.error('Auth error:', e);
+    const msg = e?.message || e?.error_description || e?.msg || (typeof e==='string'?e:JSON.stringify(e)) || 'Невідома помилка';
     if(err){err.style.display='block';err.style.color='#FF453A';err.textContent=msg;}
     if(btn) btn.textContent = origText;
   }
