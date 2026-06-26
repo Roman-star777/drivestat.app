@@ -10,7 +10,13 @@
 <script>
 const SUPABASE_URL = "https://jdjioopglufruosvtrwc.supabase.co";
 const SUPABASE_KEY = "sb_publishable_smK7fN6e4jkBgGFHcsD6dA_rbQDemr1";
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let _sb;
+try {
+  _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('Supabase initialized OK');
+} catch(e) {
+  console.error('Supabase init error:', e);
+}
 </script>
 <meta name="theme-color" content="#082434">
 <meta name="mobile-web-app-capable" content="yes">
