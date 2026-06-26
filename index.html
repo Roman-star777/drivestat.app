@@ -1700,7 +1700,8 @@ async function doLogin(){
       if(!state.onboardingDone) startOnboarding(); else showApp();
     }
   }catch(e){
-    if(err){err.style.display='block';err.style.color='#FF453A';err.textContent=e.message||'Помилка';}
+    const msg = e?.message || e?.error_description || JSON.stringify(e) || 'Помилка';
+    if(err){err.style.display='block';err.style.color='#FF453A';err.textContent=msg;}
     if(btn) btn.textContent = origText;
   }
 }
