@@ -1689,16 +1689,9 @@ async function doLogin(){
         options:{data:{name: name||email.split('@')[0]}}
       });
       if(res.error) throw res.error;
-      // Registration successful - auto login
-      if(res.data?.user){
-        state.user = res.data.user.user_metadata?.name || email.split('@')[0];
-        state.role = 'driver';
-        save();
-        if(!state.onboardingDone) startOnboarding(); else showApp();
-      } else {
-        if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Тепер увійди.';}
-        toggleAuthMode('login');
-      }
+      // Registration successful - require email confirmation
+      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Перевір email і підтверди акаунт.';}
+      toggleAuthMode('login');
     } else if(_authMode === 'reset'){
       const {error} = await _sb.auth.resetPasswordForEmail(email, {redirectTo:'https://drivestat.app'});
       if(error) throw error;
