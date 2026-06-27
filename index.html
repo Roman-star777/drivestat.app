@@ -1684,14 +1684,21 @@ async function doLogin(){
   if(btn) btn.textContent = '...';
   try{
     if(_authMode === 'register'){
-      const {data,error} = await _sb.auth.signUp({
+      const res = await _sb.auth.signUp({
         email, password: pass,
         options:{data:{name: name||email.split('@')[0]}}
       });
-      console.log('signUp result:', JSON.stringify({data, error}));
-      if(error) throw error;
-      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Увійди.';}
-      toggleAuthMode('login');
+      if(res.error) throw res.error;
+      // Registration successful - auto login
+      if(res.data?.user){
+        state.user = res.data.user.user_metadata?.name || email.split('@')[0];
+        state.role = 'driver';
+        save();
+        if(!state.onboardingDone) startOnboarding(); else showApp();
+      } else {
+        if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Тепер увійди.';}
+        toggleAuthMode('login');
+      }
     } else if(_authMode === 'reset'){
       const {error} = await _sb.auth.resetPasswordForEmail(email, {redirectTo:'https://drivestat.app'});
       if(error) throw error;
