@@ -553,7 +553,7 @@ const USERS = {
   "Sergii":       { pass:"sergii2026",role:"driver" },
 };
 const WORKER = "https://uber-bolt-proxy.romon-yarema.workers.dev";
-const MY_UUID = "ead4f6a3-8c17-42a1-9fb3-277f6f892ee8";
+let MY_UUID = null; // встановлюється після логіну з Supabase
 
 let selectedRole = "driver";
 let _modalCtx = null;
@@ -915,7 +915,7 @@ let _obWeekly = [];
 function startOnboarding(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('onboarding').style.display='flex';
-  _obStep=1; _obMonthly=[]; _obWeekly=[];
+  _obStep=0; _obMonthly=[]; _obWeekly=[];
   renderObStep();
 }
 
@@ -924,7 +924,37 @@ function renderObStep(){
   steps.innerHTML=[1,2,3].map(i=>`<div class="ob-step ${i<_obStep?'done':i===_obStep?'active':''}"></div>`).join('');
   const el=document.getElementById('ob-content');
 
-  if(_obStep===1){
+  if(_obStep===0){
+    el.innerHTML=`
+      <div class="ob-icon">⚡</div>
+      <div class="ob-title">Bolt ID водія</div>
+      <div class="ob-sub">Дозволяє автоматично синхронізувати поїздки з Bolt.</div>
+      <div class="ob-form">
+        <div style="display:flex;gap:10px;align-items:center;padding:10px 0 14px;">
+          <span style="font-size:13px;color:rgba(255,255,255,.5);">Без ID</span>
+          <div id="ob-bolt-toggle" onclick="obToggleBolt()" style="width:44px;height:24px;border-radius:12px;background:#333;cursor:pointer;position:relative;transition:background .2s;">
+            <div id="ob-bolt-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;"></div>
+          </div>
+          <span style="font-size:13px;color:rgba(255,255,255,.5);">З ID</span>
+        </div>
+        <div id="ob-bolt-id-wrap" style="display:none;">
+          <div class="ob-inp-row">
+            <span class="ob-inp-ico">🔑</span>
+            <div class="ob-inp-body">
+              <div class="ob-inp-lbl">BOLT ID ВОДІЯ</div>
+              <input class="ob-inp" id="ob-bolt-id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+            </div>
+          </div>
+        </div>
+        <div id="ob-bolt-warning" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,196,0,.08);border-radius:10px;margin-top:4px;">
+          <span style="font-size:16px;">⚠️</span>
+          <span style="font-size:12px;color:rgba(255,196,0,.8);">Поїздки з Bolt не синхронізуватимуться. Дохід вводь вручну.</span>
+        </div>
+      </div>
+      <button class="ob-btn" onclick="obNext0()">Далі →</button>
+      <span class="ob-skip" onclick="skipOnboarding()">Пропустити</span>
+    `;
+  } else if(_obStep===1){
     el.innerHTML=`
       <div class="ob-icon">🎯</div>
       <div class="ob-title">Яка твоя денна ціль?</div>
@@ -1002,6 +1032,32 @@ function renderObStep(){
   }
 }
 
+function obToggleBolt(){
+  const wrap = document.getElementById('ob-bolt-id-wrap');
+  const warn = document.getElementById('ob-bolt-warning');
+  const toggle = document.getElementById('ob-bolt-toggle');
+  const knob = document.getElementById('ob-bolt-knob');
+  const isOn = knob.style.left === '23px';
+  if(isOn){
+    knob.style.left='3px'; toggle.style.background='#333';
+    wrap.style.display='none'; warn.style.display='flex';
+  } else {
+    knob.style.left='23px'; toggle.style.background='#FFC400';
+    wrap.style.display='block'; warn.style.display='none';
+  }
+}
+function obNext0(){
+  const knob = document.getElementById('ob-bolt-knob');
+  const isOn = knob && knob.style.left === '23px';
+  if(isOn){
+    const id = document.getElementById('ob-bolt-id')?.value.trim();
+    if(!id){ alert('Введи Bolt ID або вимкни перемикач'); return; }
+    state.settings.boltUUID = id;
+  } else {
+    state.settings.boltUUID = null;
+  }
+  _obStep=1; renderObStep();
+}
 function obNext1(){
   const goal=parseInt(document.getElementById('ob-goal')?.value)||1800;
   const km=document.getElementById('ob-km')?.value;
@@ -1689,9 +1745,16 @@ async function doLogin(){
         options:{data:{name: name||email.split('@')[0]}}
       });
       if(res.error) throw res.error;
-      // Registration successful - require email confirmation
-      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Перевір email і підтверди акаунт.';}
-      toggleAuthMode('login');
+      // Registration successful - auto login
+      if(res.data?.user){
+        state.user = res.data.user.user_metadata?.name || email.split('@')[0];
+        state.role = 'driver';
+        save();
+        if(!state.onboardingDone) startOnboarding(); else showApp();
+      } else {
+        if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Тепер увійди.';}
+        toggleAuthMode('login');
+      }
     } else if(_authMode === 'reset'){
       const {error} = await _sb.auth.resetPasswordForEmail(email, {redirectTo:'https://drivestat.app'});
       if(error) throw error;
@@ -1699,6 +1762,7 @@ async function doLogin(){
     } else {
       const {data,error} = await _sb.auth.signInWithPassword({email, password: pass});
       if(error) throw error;
+      MY_UUID = data.user.id;
       state.user = data.user.user_metadata?.name || email.split('@')[0];
       state.role = 'driver';
       const loaded = await loadFromCloud();
@@ -1739,7 +1803,8 @@ async function syncBolt(silent=false){
     const r=await fetch(`${WORKER}/orders`,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({start_ts:now-30*86400,end_ts:now})}).then(r=>r.json());
     if(r.orders?.length){
-      const filtered=isAdmin() ? r.orders : r.orders.filter(o=>o.driver_uuid===MY_UUID);
+      const boltId = state.settings?.boltUUID || null;
+      const filtered=isAdmin() ? r.orders : (boltId ? r.orders.filter(o=>o.driver_uuid===boltId) : []);
       if(filtered.length>0) state.boltData.orders=filtered;
     }
     state.lastSync=new Date().toLocaleTimeString('uk',{hour:'2-digit',minute:'2-digit'});
@@ -3535,6 +3600,7 @@ document.getElementById('ln-email')?.addEventListener('keydown',e=>{ if(e.key===
   try{
     const {data:{session}} = await _sb.auth.getSession();
     if(session){
+      MY_UUID = session.user.id;
       state.user = session.user.user_metadata?.name || session.user.email.split('@')[0];
       state.role = 'driver';
       const loaded = await loadFromCloud();
