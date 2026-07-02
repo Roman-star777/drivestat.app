@@ -553,7 +553,7 @@ const USERS = {
   "Sergii":       { pass:"sergii2026",role:"driver" },
 };
 const WORKER = "https://uber-bolt-proxy.romon-yarema.workers.dev";
-let MY_UUID = null; // встановлюється після логіну з Supabase
+let MY_UUID = null; // Supabase user id, встановлюється після логіну
 
 let selectedRole = "driver";
 let _modalCtx = null;
@@ -562,10 +562,7 @@ let _modalCtx = null;
 let state = {
   user: null, role:"driver", lang:"uk",
   boltData:{ orders:[] },
-  monthlyFixedCosts: [
-    {id:"m1", name:"Страховка авто", amount:2000, dueDay:15},
-    {id:"m2", name:"Соціалка OSVČ",  amount:5000, dueDay:25},
-  ],
+  monthlyFixedCosts: [],
   weeklyFixedCosts: [],
   weeklyIncome: [],
   recurringIncome: [],
@@ -574,15 +571,16 @@ let state = {
   odometerLog: [],
   onboardingDone: false,
   settings:{
-    fuelEnabled: true,
-    fuelPrice:41, fuelCons:0,
+    fuelEnabled: false,
+    fuelPrice:0, fuelCons:0,
     amort:0,
     dailyGoal:1800,
     boltCommission:25,
     dphEnabled:false,
     incomeTaxEnabled:false,
     incomeTaxRate:15,
-    boltKmEnabled: true,
+    boltKmEnabled: false,
+    boltUUID: null,
     notifEnabled: false,
     notifHour: 21,
     rolloverEnabled: false,
@@ -669,6 +667,28 @@ function load(){
       migrateState(p);
     }
   }catch(e){}
+}
+
+// Чистий стан для нового водія — жодних чужих даних
+function resetToCleanState(){
+  state.monthlyFixedCosts=[];
+  state.weeklyFixedCosts=[];
+  state.weeklyIncome=[];
+  state.recurringIncome=[];
+  state.oneTimeIncome=[];
+  state.oneTimeExpenses=[];
+  state.odometerLog=[];
+  state.boltData={orders:[]};
+  state.paidExpenses=[];
+  state.rolloverBalance=0;
+  state.monthlyArchive={};
+  state.onboardingDone=false;
+  state.settings={...state.settings,
+    fuelEnabled:false, fuelPrice:0, fuelCons:0, amort:0,
+    boltKmEnabled:false, boltUUID:null,
+    dphEnabled:false, incomeTaxEnabled:false
+  };
+  try{ localStorage.removeItem('ds3'); }catch(e){}
 }
 
 // Keep at most ONE balance correction across ALL dates in each list (the most recent by id).
@@ -915,7 +935,7 @@ let _obWeekly = [];
 function startOnboarding(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('onboarding').style.display='flex';
-  _obStep=0; _obMonthly=[]; _obWeekly=[];
+  _obStep=1; _obMonthly=[]; _obWeekly=[];
   renderObStep();
 }
 
@@ -924,37 +944,7 @@ function renderObStep(){
   steps.innerHTML=[1,2,3].map(i=>`<div class="ob-step ${i<_obStep?'done':i===_obStep?'active':''}"></div>`).join('');
   const el=document.getElementById('ob-content');
 
-  if(_obStep===0){
-    el.innerHTML=`
-      <div class="ob-icon">⚡</div>
-      <div class="ob-title">Bolt ID водія</div>
-      <div class="ob-sub">Дозволяє автоматично синхронізувати поїздки з Bolt.</div>
-      <div class="ob-form">
-        <div style="display:flex;gap:10px;align-items:center;padding:10px 0 14px;">
-          <span style="font-size:13px;color:rgba(255,255,255,.5);">Без ID</span>
-          <div id="ob-bolt-toggle" onclick="obToggleBolt()" style="width:44px;height:24px;border-radius:12px;background:#333;cursor:pointer;position:relative;transition:background .2s;">
-            <div id="ob-bolt-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;"></div>
-          </div>
-          <span style="font-size:13px;color:rgba(255,255,255,.5);">З ID</span>
-        </div>
-        <div id="ob-bolt-id-wrap" style="display:none;">
-          <div class="ob-inp-row">
-            <span class="ob-inp-ico">🔑</span>
-            <div class="ob-inp-body">
-              <div class="ob-inp-lbl">BOLT ID ВОДІЯ</div>
-              <input class="ob-inp" id="ob-bolt-id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-            </div>
-          </div>
-        </div>
-        <div id="ob-bolt-warning" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(255,196,0,.08);border-radius:10px;margin-top:4px;">
-          <span style="font-size:16px;">⚠️</span>
-          <span style="font-size:12px;color:rgba(255,196,0,.8);">Поїздки з Bolt не синхронізуватимуться. Дохід вводь вручну.</span>
-        </div>
-      </div>
-      <button class="ob-btn" onclick="obNext0()">Далі →</button>
-      <span class="ob-skip" onclick="skipOnboarding()">Пропустити</span>
-    `;
-  } else if(_obStep===1){
+  if(_obStep===1){
     el.innerHTML=`
       <div class="ob-icon">🎯</div>
       <div class="ob-title">Яка твоя денна ціль?</div>
@@ -1032,32 +1022,6 @@ function renderObStep(){
   }
 }
 
-function obToggleBolt(){
-  const wrap = document.getElementById('ob-bolt-id-wrap');
-  const warn = document.getElementById('ob-bolt-warning');
-  const toggle = document.getElementById('ob-bolt-toggle');
-  const knob = document.getElementById('ob-bolt-knob');
-  const isOn = knob.style.left === '23px';
-  if(isOn){
-    knob.style.left='3px'; toggle.style.background='#333';
-    wrap.style.display='none'; warn.style.display='flex';
-  } else {
-    knob.style.left='23px'; toggle.style.background='#FFC400';
-    wrap.style.display='block'; warn.style.display='none';
-  }
-}
-function obNext0(){
-  const knob = document.getElementById('ob-bolt-knob');
-  const isOn = knob && knob.style.left === '23px';
-  if(isOn){
-    const id = document.getElementById('ob-bolt-id')?.value.trim();
-    if(!id){ alert('Введи Bolt ID або вимкни перемикач'); return; }
-    state.settings.boltUUID = id;
-  } else {
-    state.settings.boltUUID = null;
-  }
-  _obStep=1; renderObStep();
-}
 function obNext1(){
   const goal=parseInt(document.getElementById('ob-goal')?.value)||1800;
   const km=document.getElementById('ob-km')?.value;
@@ -1745,16 +1709,8 @@ async function doLogin(){
         options:{data:{name: name||email.split('@')[0]}}
       });
       if(res.error) throw res.error;
-      // Registration successful - auto login
-      if(res.data?.user){
-        state.user = res.data.user.user_metadata?.name || email.split('@')[0];
-        state.role = 'driver';
-        save();
-        if(!state.onboardingDone) startOnboarding(); else showApp();
-      } else {
-        if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Тепер увійди.';}
-        toggleAuthMode('login');
-      }
+      if(err){err.style.display='block';err.style.color='#01CC74';err.textContent='✓ Реєстрація успішна! Перевір email і підтверди акаунт.';}
+      toggleAuthMode('login');
     } else if(_authMode === 'reset'){
       const {error} = await _sb.auth.resetPasswordForEmail(email, {redirectTo:'https://drivestat.app'});
       if(error) throw error;
@@ -1766,7 +1722,7 @@ async function doLogin(){
       state.user = data.user.user_metadata?.name || email.split('@')[0];
       state.role = 'driver';
       const loaded = await loadFromCloud();
-      if(!loaded) load();
+      if(!loaded){ resetToCleanState(); state.user = data.user.user_metadata?.name || email.split('@')[0]; }
       save();
       if(!state.onboardingDone) startOnboarding(); else showApp();
     }
@@ -3328,10 +3284,22 @@ function renderProfile(){
         <div class="st-row" style="border-bottom:1px solid rgba(255,255,255,.05);padding:10px 0;"><div><div class="st-lbl">${t('fuelPrice')}</div><div class="st-hint">${t('fuelPriceHint')}</div></div><input class="st-inp" id="st-fuel-p" type="number" value="${s.fuelPrice}"></div>
         <div class="st-row" style="border-bottom:1px solid rgba(255,255,255,.05);padding:10px 0;"><div><div class="st-lbl">${t('fuelCons')}</div><div class="st-hint">${t('fuelConsHint')}</div></div><input class="st-inp" id="st-fuel-c" type="number" value="${s.fuelCons||''}"></div>
         <div class="st-row" style="border-bottom:1px solid rgba(255,255,255,.05);padding:10px 0;"><div><div class="st-lbl">${t('amort')}</div><div class="st-hint">${t('amortHint')}</div></div><input class="st-inp" id="st-amort" type="number" step="0.1" value="${s.amort||''}"></div>
-        <div class="st-row" style="padding:10px 0;">
+        <div class="st-row" style="padding:10px 0 6px;">
           <div><div class="st-lbl">${t('kmSource')}</div></div>
           <div style="display:flex;gap:6px;">
-            ${[{v:true,l:t('boltGps')},{v:false,l:'Одометр'}].map(opt=>`<button onclick="toggleKmSource(${opt.v})" style="padding:7px 11px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${(s.boltKmEnabled||false)===opt.v?'rgba(75,123,255,.35)':'rgba(255,255,255,.08)'};background:${(s.boltKmEnabled||false)===opt.v?'rgba(75,123,255,.1)':'rgba(255,255,255,.04)'};color:${(s.boltKmEnabled||false)===opt.v?'#7BA8FF':'rgba(255,255,255,.4)'};">${opt.l}</button>`).join('')}
+            <button onclick="${s.boltUUID?'toggleKmSource(true)':'showBoltIdHint()'}" style="padding:7px 11px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${s.boltKmEnabled?'rgba(75,123,255,.35)':'rgba(255,255,255,.08)'};background:${s.boltKmEnabled?'rgba(75,123,255,.1)':'rgba(255,255,255,.04)'};color:${s.boltKmEnabled?'#7BA8FF':'rgba(255,255,255,.4)'};">${t('boltGps')}${!s.boltUUID?' 🔒':''}</button>
+            <button onclick="toggleKmSource(false)" style="padding:7px 11px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${!s.boltKmEnabled?'rgba(75,123,255,.35)':'rgba(255,255,255,.08)'};background:${!s.boltKmEnabled?'rgba(75,123,255,.1)':'rgba(255,255,255,.04)'};color:${!s.boltKmEnabled?'#7BA8FF':'rgba(255,255,255,.4)'};">Одометр</button>
+          </div>
+        </div>
+        <div class="st-row" style="padding:6px 0 10px;flex-direction:column;gap:6px;align-items:stretch;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="st-lbl" style="font-size:10px;">BOLT ID ВОДІЯ</div>
+            ${s.boltUUID?`<span style="font-size:9px;color:#01CC74;">✓ Підключено</span>`:`<span style="font-size:9px;color:rgba(255,196,0,.75);">⚠️ Не вказано</span>`}
+          </div>
+          <div style="display:flex;gap:6px;">
+            <input id="st-bolt-uuid" type="text" placeholder="Identifikátor řidiče з Bolt" value="${s.boltUUID||''}" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#fff;padding:8px 10px;font-size:10px;font-family:inherit;outline:none;">
+            <button onclick="saveBoltUUID()" style="background:rgba(75,123,255,.12);border:1px solid rgba(75,123,255,.25);border-radius:9px;color:#7BA8FF;font-size:11px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:inherit;">✓</button>
+            ${s.boltUUID?`<button onclick="clearBoltUUID()" style="background:rgba(255,69,69,.08);border:1px solid rgba(255,69,69,.15);border-radius:9px;color:#FF6B6B;font-size:11px;padding:8px 11px;cursor:pointer;font-family:inherit;">✕</button>`:''}
           </div>
         </div>
       </div>
@@ -3442,6 +3410,20 @@ function toggleDph(v){ state.settings.dphEnabled=v; save(); renderProfile(); ren
 function toggleTax(v){ state.settings.incomeTaxEnabled=v; save(); renderProfile(); renderDash(); }
 function toggleBoltKm(v){ state.settings.boltKmEnabled=v; save(); renderProfile(); renderDash(); }
 function toggleKmSource(v){ state.settings.boltKmEnabled=v; save(); renderProfile(); renderDash(); }
+function saveBoltUUID(){
+  const val=document.getElementById('st-bolt-uuid')?.value.trim();
+  if(!val){ alert('Введи свій Bolt ID (Identifikátor řidiče)'); return; }
+  state.settings.boltUUID=val;
+  state.settings.boltKmEnabled=true;
+  save(); renderProfile(); renderDash(); syncBolt(true);
+}
+function clearBoltUUID(){
+  if(!confirm('Видалити Bolt ID? Автосинхронізація вимкнеться.')) return;
+  state.settings.boltUUID=null;
+  state.settings.boltKmEnabled=false;
+  save(); renderProfile(); renderDash();
+}
+function showBoltIdHint(){ alert('Спочатку введи свій Bolt ID у полі нижче і натисни ✓ — після цього Bolt GPS увімкнеться.'); }
 
 function addOdometer(){
   const d=document.getElementById('odo-date')?.value||today();
