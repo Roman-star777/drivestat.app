@@ -553,7 +553,7 @@ const USERS = {
   "Sergii":       { pass:"sergii2026",role:"driver" },
 };
 const WORKER = "https://uber-bolt-proxy.romon-yarema.workers.dev";
-let MY_UUID = null; // Supabase user id, встановлюється після логіну
+let MY_UUID = null; // Supabase user id
 
 let selectedRole = "driver";
 let _modalCtx = null;
@@ -669,25 +669,13 @@ function load(){
   }catch(e){}
 }
 
-// Чистий стан для нового водія — жодних чужих даних
 function resetToCleanState(){
-  state.monthlyFixedCosts=[];
-  state.weeklyFixedCosts=[];
-  state.weeklyIncome=[];
-  state.recurringIncome=[];
-  state.oneTimeIncome=[];
-  state.oneTimeExpenses=[];
-  state.odometerLog=[];
-  state.boltData={orders:[]};
-  state.paidExpenses=[];
-  state.rolloverBalance=0;
-  state.monthlyArchive={};
-  state.onboardingDone=false;
-  state.settings={...state.settings,
-    fuelEnabled:false, fuelPrice:0, fuelCons:0, amort:0,
-    boltKmEnabled:false, boltUUID:null,
-    dphEnabled:false, incomeTaxEnabled:false
-  };
+  state.monthlyFixedCosts=[]; state.weeklyFixedCosts=[]; state.weeklyIncome=[];
+  state.recurringIncome=[]; state.oneTimeIncome=[]; state.oneTimeExpenses=[];
+  state.odometerLog=[]; state.boltData={orders:[]}; state.paidExpenses=[];
+  state.rolloverBalance=0; state.monthlyArchive={}; state.onboardingDone=false;
+  state.settings={...state.settings, fuelEnabled:false, fuelPrice:0, fuelCons:0,
+    amort:0, boltKmEnabled:false, boltUUID:null, dphEnabled:false, incomeTaxEnabled:false};
   try{ localStorage.removeItem('ds3'); }catch(e){}
 }
 
@@ -3379,7 +3367,7 @@ function listSection(lbl,arr,color,delFn,subFn,useId=false){
         ${subFn?`<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:1px;">${subFn(c)}</div>`:''}
       </div>
       <span class="dyn-amt" style="color:${color};">${c.amount?`${fmt(c.amount)} Kč`:c.val||''}</span>
-      <button onclick="${delFn}('${useId?c.id:i}')" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:14px;cursor:pointer;margin-left:8px;padding:2px 4px;">✕</button>
+      <button onclick="${delFn}('${c.id!=null?c.id:i}')" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:14px;cursor:pointer;margin-left:8px;padding:2px 4px;">✕</button>
     </div>`).join('')}</div>`;
 }
 
@@ -3413,17 +3401,15 @@ function toggleKmSource(v){ state.settings.boltKmEnabled=v; save(); renderProfil
 function saveBoltUUID(){
   const val=document.getElementById('st-bolt-uuid')?.value.trim();
   if(!val){ alert('Введи свій Bolt ID (Identifikátor řidiče)'); return; }
-  state.settings.boltUUID=val;
-  state.settings.boltKmEnabled=true;
+  state.settings.boltUUID=val; state.settings.boltKmEnabled=true;
   save(); renderProfile(); renderDash(); syncBolt(true);
 }
 function clearBoltUUID(){
   if(!confirm('Видалити Bolt ID? Автосинхронізація вимкнеться.')) return;
-  state.settings.boltUUID=null;
-  state.settings.boltKmEnabled=false;
+  state.settings.boltUUID=null; state.settings.boltKmEnabled=false;
   save(); renderProfile(); renderDash();
 }
-function showBoltIdHint(){ alert('Спочатку введи свій Bolt ID у полі нижче і натисни ✓ — після цього Bolt GPS увімкнеться.'); }
+function showBoltIdHint(){ alert('Спочатку введи свій Bolt ID у полі нижче і натисни ✓.'); }
 
 function addOdometer(){
   const d=document.getElementById('odo-date')?.value||today();
