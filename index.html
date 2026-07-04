@@ -2286,9 +2286,6 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
   const isCurrentMo=(chartMo===todayMonth());
   const todayDayNum=isCurrentMo?new Date().getDate():0;
 
-  // ── Daily target from SETTINGS (not calcMonth!) ──
-  const dailyTarget=state.settings?.dailyGoal||1500;
-
   // ── Bolt earnings + km per day ──
   const boltByDay={};
   (state.boltData?.orders||[]).filter(o=>o.order_status==='finished').forEach(o=>{
@@ -2299,6 +2296,27 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
     boltByDay[d].earnings+=(o.order_price?.net_earnings||0);
     boltByDay[d].km+=(o.ride_distance||0)/1000;
   });
+
+  // ── Daily target respects "Прогноз у платежах" setting ──
+  const _fcMode = state.settings?.forecastMode||'avg';
+  let dailyTarget;
+  if(_fcMode==='none'){
+    dailyTarget=0;
+  } else if(_fcMode==='goal'){
+    dailyTarget=state.settings?.dailyGoal||1500;
+  } else {
+    // 'avg' — середній чистий приріст за минулі дні поточного місяця що мали дані
+    const pastDaysWithData=[];
+    for(let d=1;d<=(isCurrentMo?todayDayNum:daysInMo);d++){
+      const ds=`${chartMo}-${String(d).padStart(2,'0')}`;
+      const b=boltByDay[ds];
+      if(b&&b.earnings>0) pastDaysWithData.push(b.earnings);
+    }
+    dailyTarget = pastDaysWithData.length
+      ? Math.round(pastDaysWithData.reduce((a,b)=>a+b,0)/pastDaysWithData.length)
+      : (state.settings?.dailyGoal||1500);
+  }
+
 
   // ── One-time income per day ──
   const incByDate={};
