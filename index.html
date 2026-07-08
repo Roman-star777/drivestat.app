@@ -2194,6 +2194,23 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
         const isExpanded=_expandedDay===d;
         const col=net2>=0?'#4ECFA0':'#FF6B6B';
         const hasOther=day.other>0;
+        // ── Кругова ціль дня ──
+        const _goal=state.settings?.dailyGoal||1500;
+        const _pct=Math.max(0,Math.round(_goal>0?(net2/_goal)*100:0));
+        const _ringR=18, _ringC=2*Math.PI*_ringR;
+        const _ringCol=_pct>=100?'#01CC74':(_pct>=50?'#FFC400':'#FF6B6B');
+        const _off=_ringC*(1-Math.min(1,_pct/100));
+        const _hasSecond=_pct>100;
+        const _r2=13, _c2=2*Math.PI*_r2;
+        const _off2=_c2*(1-Math.min(1,Math.max(0,(_pct-100)/100)));
+        const _ringSVG=`<div style="position:relative;width:40px;height:40px;flex-shrink:0;">
+          <svg width="40" height="40" viewBox="0 0 44 44" style="transform:rotate(-90deg);">
+            <circle cx="22" cy="22" r="${_ringR}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
+            <circle cx="22" cy="22" r="${_ringR}" fill="none" stroke="${_ringCol}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${_ringC.toFixed(1)}" stroke-dashoffset="${_off.toFixed(1)}"/>
+            ${_hasSecond?`<circle cx="22" cy="22" r="${_r2}" fill="none" stroke="rgba(1,204,116,.35)" stroke-width="2" stroke-linecap="round" stroke-dasharray="${_c2.toFixed(1)}" stroke-dashoffset="${_off2.toFixed(1)}"/>`:''}
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:${_pct>=1000?'8px':'10px'};font-weight:800;color:${_ringCol};">${_pct}%</div>
+        </div>`;
         return `
         <div style="background:#141620;border:1px solid rgba(255,255,255,.07);border-radius:14px;margin-bottom:7px;overflow:hidden;">
           <!-- Day header row - clickable -->
@@ -2205,6 +2222,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
                 ${day.other>0?`<div style="width:${otherW.toFixed(0)}%;height:100%;background:#4B7BFF;"></div>`:''}
               </div>
             </div>
+            ${_ringSVG}
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
               <span style="font-size:12px;font-weight:700;color:${col};">${fmtS(net2)}</span>
               <span style="font-size:11px;color:rgba(255,255,255,.2);transition:transform .2s;${isExpanded?'transform:rotate(180deg);display:inline-block;':''}">⌄</span>
