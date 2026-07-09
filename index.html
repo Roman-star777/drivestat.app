@@ -577,6 +577,7 @@ let state = {
     dailyGoal:1800,
     boltCommission:25,
     dphEnabled:false,
+    dphRate:21,
     incomeTaxEnabled:false,
     incomeTaxRate:15,
     boltKmEnabled: false,
@@ -1568,7 +1569,14 @@ function calcMonth(mo){
   const fixedMonthly=(state.monthlyFixedCosts||[]).reduce((a,c)=>a+c.amount,0);
   const weeksInMonth=4.33;
   const fixedWeekly=(state.weeklyFixedCosts||[]).reduce((a,c)=>a+c.amount,0)*weeksInMonth;
-  const dph=s.dphEnabled ? boltGross*(s.boltCommission/100)*0.21 : 0;
+  // DPH (reverse charge): комісія рахується від БРУТТО, не від чистого доходу.
+  // boltGross тут = net_earnings (чистий після комісії Bolt/Uber).
+  // brutto = netto / (1 - comm%)  →  commission = brutto - netto  →  dph = commission * dphRate%
+  const _commRate=(s.boltCommission||25)/100;
+  const _dphRate=(s.dphRate||21)/100;
+  const _brutto=_commRate<1 ? boltGross/(1-_commRate) : boltGross;
+  const _commission=_brutto-boltGross;
+  const dph=s.dphEnabled ? _commission*_dphRate : 0;
   const totalFixed=fixedMonthly+fixedWeekly+dph;
   const totalVar=vc.total+oneTimeExp;
   const totalCosts=totalFixed+totalVar;
