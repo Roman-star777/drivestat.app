@@ -1550,6 +1550,36 @@ function getKm(mode, ...args){
   }
 }
 
+// ── DPH helpers (reverse charge) ──
+// Дохід підлягає ПДВ якщо це Bolt (авто) або ручний дохід з назвою Uber/Убер/Liftago
+function isDphIncome(name){
+  if(!name) return false;
+  const n=String(name).toLowerCase();
+  return n.includes('uber')||n.includes('убер')||n.includes('liftago')||n.includes('ліфтаго')||n.includes('лифтаго');
+}
+// netto → сума ПДВ (reverse charge): brutto=netto/(1-comm), commission=brutto-netto, dph=commission*rate
+function dphFromNetto(netto){
+  const s=state.settings;
+  if(!s?.dphEnabled||!netto||netto<=0) return 0;
+  const commRate=(s.boltCommission||25)/100;
+  const dphRate=(s.dphRate||21)/100;
+  if(commRate>=1) return 0;
+  const brutto=netto/(1-commRate);
+  return (brutto-netto)*dphRate;
+}
+// ПДВ за конкретний день: Bolt дохід + ручні Uber/Liftago доходи цього дня
+function dphForDay(dateStr){
+  if(!state.settings?.dphEnabled) return 0;
+  const boltNet=(state.boltData?.orders||[])
+    .filter(o=>o.order_status==='finished')
+    .filter(o=>{const ts=o.order_finished_timestamp||o.order_created_timestamp; return ts&&toPragueDate(ts)===dateStr;})
+    .reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
+  const manualNet=(state.oneTimeIncome||[])
+    .filter(e=>e.date===dateStr&&isDphIncome(e.name))
+    .reduce((a,e)=>a+e.amount,0);
+  return dphFromNetto(boltNet+manualNet);
+}
+
 function calcMonth(mo){
   mo=mo||todayMonth(); const s=state.settings;
   const orders=ordersForMonth(mo);
@@ -1569,14 +1599,15 @@ function calcMonth(mo){
   const fixedMonthly=(state.monthlyFixedCosts||[]).reduce((a,c)=>a+c.amount,0);
   const weeksInMonth=4.33;
   const fixedWeekly=(state.weeklyFixedCosts||[]).reduce((a,c)=>a+c.amount,0)*weeksInMonth;
-  // DPH (reverse charge): комісія рахується від БРУТТО, не від чистого доходу.
-  // boltGross тут = net_earnings (чистий після комісії Bolt/Uber).
-  // brutto = netto / (1 - comm%)  →  commission = brutto - netto  →  dph = commission * dphRate%
-  const _commRate=(s.boltCommission||25)/100;
-  const _dphRate=(s.dphRate||21)/100;
-  const _brutto=_commRate<1 ? boltGross/(1-_commRate) : boltGross;
-  const _commission=_brutto-boltGross;
-  const dph=s.dphEnabled ? _commission*_dphRate : 0;
+  // DPH (reverse charge): база = Bolt дохід + ручні доходи з назвою Uber/Liftago.
+  // Комісія рахується від БРУТТО: brutto=netto/(1-comm) → commission=brutto-netto → dph=commission*rate
+  const _dphManual=(state.oneTimeIncome||[])
+    .filter(e=>e.date?.startsWith(mo)&&isDphIncome(e.name))
+    .reduce((a,e)=>a+e.amount,0);
+  const _dphBase=boltGross+_dphManual;
+  const _brutto=(()=>{const cr=(s.boltCommission||25)/100; return cr<1?_dphBase/(1-cr):_dphBase;})();
+  const _commission=_brutto-_dphBase;
+  const dph=s.dphEnabled ? dphFromNetto(_dphBase) : 0;
   const totalFixed=fixedMonthly+fixedWeekly+dph;
   const totalVar=vc.total+oneTimeExp;
   const totalCosts=totalFixed+totalVar;
@@ -1594,6 +1625,7 @@ function calcMonth(mo){
   const dailyTarget=Math.round(Math.max(0,totalFixed-gross+totalVar)/daysLeftInMonth());
 
   return {gross,boltGross,recurringInc,oneTimeInc,oneTimeExp,rollover,km,boltKm,vc,
+    dphBase:_dphBase,dphBrutto:_brutto,dphCommission:_commission,
     fixedMonthly,fixedWeekly,dph,totalFixed,totalVar,totalCosts,
     incomeTax,net,pct,activeHours,dailyTarget,trips:orders.length,mo};
 }
@@ -1858,7 +1890,7 @@ function renderDash(){
   if(s.amort>0 && m.vc.amort>0)   bars.push({name:t('amortCost'), val:m.vc.amort, color:'#FBBF24'});
   (state.monthlyFixedCosts||[]).forEach(c=>bars.push({name:c.name, val:c.amount, color:'#FF453A'}));
   (state.weeklyFixedCosts||[]).forEach(c=>bars.push({name:c.name, val:c.amount*4.33, color:'#F87171'}));
-  if(m.dph>0) bars.push({name:'ПДВ 21%', val:m.dph, color:'#A78BFA'});
+  if(m.dph>0) bars.push({name:'🧾 ПДВ '+(s.dphRate||21)+'%', val:m.dph, color:'#A78BFA'});
   if(m.incomeTax>0) bars.push({name:'Податок '+s.incomeTaxRate+'%', val:m.incomeTax, color:'#818CF8'});
   const maxBar=Math.max(...bars.map(b=>b.val),1);
 
@@ -2050,6 +2082,9 @@ function renderDash(){
         <div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${bw.toFixed(0)}%;background:${b.color};border-radius:2px;"></div></div>
         <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,.4);width:48px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;">-${fmt(b.val)}</span>
       </div>`;}).join('')}
+      ${m.dph>0?`<div style="margin-top:10px;padding:8px 10px;border-radius:9px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.16);font-size:9px;color:rgba(190,170,255,.8);line-height:1.5;">
+        🧾 <b>ПДВ reverse charge</b> · Brutto ${fmt(m.dphBrutto)} Kč → комісія ${s.boltCommission||25}% = ${fmt(m.dphCommission)} Kč → ПДВ ${s.dphRate||21}% = <b>${fmt(m.dph)} Kč</b>
+      </div>`:''}
     </div>
 
     ${state.lastSync?`<div class="hint-txt">Дані з Bolt · ${state.lastSync}</div>`:`<div class="hint-txt">${t('noData')}</div>`}
@@ -2196,7 +2231,8 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
         const dayKm=state.settings.boltKmEnabled ? day.km : getOdometerKmForDay(d);
         const vc2=calcVarCosts(dayKm);
         const corr=day.correction||0;
-        const net2=total-vc2.total+corr;
+        const _dphDay=dphForDay(d);
+        const net2=total-vc2.total+corr-_dphDay;
         const boltW=Math.min(92,(day.bolt/maxTotal)*100);
         const otherW=Math.min(92-boltW,(day.other/maxTotal)*100);
         const isExpanded=_expandedDay===d;
@@ -2268,6 +2304,10 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
                 <div style="display:flex;align-items:center;gap:6px;"><div style="width:6px;height:6px;border-radius:50%;background:rgba(255,150,50,.7);"></div><span style="font-size:10px;color:rgba(255,255,255,.5);">Амортизація</span></div>
                 <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;font-weight:700;color:rgba(255,180,80,.8);">-${fmt(vc2.amort)} Kč</span><span style="font-size:9px;color:rgba(255,255,255,.15);">🔒</span></div>
               </div>`:''}
+              ${_dphDay>0?`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;margin-top:2px;background:rgba(167,139,250,.05);border-radius:6px;padding-left:6px;padding-right:6px;">
+                <div style="display:flex;align-items:center;gap:6px;"><div style="width:6px;height:6px;border-radius:50%;background:#A78BFA;"></div><span style="font-size:10px;color:#A78BFA;">🧾 ПДВ ${state.settings?.dphRate||21}% <span style="opacity:.5;font-size:9px;">(reverse charge)</span></span></div>
+                <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;font-weight:700;color:#A78BFA;">-${fmt(_dphDay)} Kč</span><span style="font-size:9px;color:rgba(255,255,255,.15);">🔒</span></div>
+              </div>`:''}
             </div>
             <!-- Quick add income -->
             <div style="background:rgba(75,123,255,.06);border:1px solid rgba(75,123,255,.15);border-radius:10px;padding:8px 10px;">
@@ -2284,6 +2324,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
           <!-- Collapsed hint -->
           <div style="padding:0 13px 7px;display:flex;align-items:center;gap:5px;">
             <span style="font-size:8px;color:rgba(255,255,255,.18);">${day.trips} поїздок${day.km>0?' · '+fmt(day.km)+' км':''}</span>
+            ${_dphDay>0?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:5px;background:rgba(167,139,250,.1);color:#A78BFA;border:1px solid rgba(167,139,250,.2);margin-left:4px;">🧾 ПДВ −${fmt(_dphDay)} Kč</span>`:''}
             ${day.correction?`<span style="font-size:8px;color:#FB923C;font-weight:600;margin-left:4px;">✏️ корекція балансу</span>`:''}
             <span style="margin-left:auto;font-size:8px;color:rgba(75,123,255,.35);font-weight:600;">+ додати дохід</span>
           </div>`:''}
