@@ -3677,31 +3677,33 @@ if(state.settings?.notifEnabled) scheduleNotif();
 </script>
 
 <script>
+// ── Service Worker: справжній файл sw.js (blob URL не працює в Safari) ──
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    // Inline service worker via blob
-    const swCode = `
-const CACHE = 'drivestat-v1';
-const URLS = ['/'];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS)));
-  self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
-  self.clients.claim();
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-});
-`;
-    const blob = new Blob([swCode], {type:'application/javascript'});
-    const url = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(url).then(r => {
-      console.log('SW registered');
-    }).catch(e => console.log('SW error:', e));
+    navigator.serviceWorker.register('./sw.js', {scope:'./'})
+      .then(reg => { console.log('[SW] registered, scope:', reg.scope); reg.update(); })
+      .catch(err => console.error('[SW] registration failed:', err));
   });
 }
+
+// ── Індикатор офлайн-режиму ──
+(function(){
+  function showOffline(on){
+    let el=document.getElementById('offline-banner');
+    if(on){
+      if(!el){
+        el=document.createElement('div');
+        el.id='offline-banner';
+        el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(255,196,0,.95);color:#1a1200;font:600 12px -apple-system,sans-serif;text-align:center;padding:7px 12px;';
+        el.textContent='📴 Офлайн — дані збережуться і синхронізуються при появі мережі';
+        document.body.appendChild(el);
+      }
+    } else if(el){ el.remove(); }
+  }
+  window.addEventListener('offline', ()=>showOffline(true));
+  window.addEventListener('online',  ()=>{ showOffline(false); if(typeof saveToCloud==='function') saveToCloud(); });
+  if(!navigator.onLine) showOffline(true);
+})();
 </script>
 </body>
 </html>
