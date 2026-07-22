@@ -3314,7 +3314,7 @@ function renderProfile(){
           <input class="add-inp" id="exp-name" type="text" placeholder="Назва...">
           <input class="add-inp" id="exp-amt" type="number" inputmode="numeric" placeholder="Kč">
           <input class="add-inp" id="exp-date" type="date" value="${today()}" style="width:110px;">
-          <button class="add-btn" onclick="addOneTimeExpense()">+</button>
+          <button class="add-btn" onclick="addOneTime()">+</button>
         </div>
       </div>
     `:''}
@@ -3409,14 +3409,14 @@ function renderProfile(){
         <div class="add-row" style="margin-top:8px;">
           <input class="add-inp" id="odo-date" type="date" value="${today()}" style="width:120px;">
           <input class="add-inp" id="odo-km" type="number" inputmode="numeric" placeholder="напр. 45230 км">
-          <button class="add-btn" onclick="addOdo()">+</button>
+          <button class="add-btn" onclick="addOdometer()">+</button>
         </div>
       </div>`:''}
       <div class="sec-lbl" style="margin-top:4px;">${t('taxSection')}</div>
       <div class="st-card"><div><div class="st-lbl">${t('dph')}</div><div class="st-hint">${s.dphEnabled?`${s.dphRate||21}%`:'Вимкнено'}</div></div>
         <label class="tog"><input type="checkbox" ${s.dphEnabled?'checked':''} onchange="toggleDph(this.checked)"><span class="tog-sl"></span></label></div>
       <div class="st-card"><div><div class="st-lbl">${t('incomeTax')}</div><div class="st-hint">${s.incomeTaxEnabled?`${s.incomeTaxRate||15}%`:'Вимкнено'}</div></div>
-        <label class="tog"><input type="checkbox" ${s.incomeTaxEnabled?'checked':''} onchange="toggleIncomeTax(this.checked)"><span class="tog-sl"></span></label></div>
+        <label class="tog"><input type="checkbox" ${s.incomeTaxEnabled?'checked':''} onchange="toggleTax(this.checked)"><span class="tog-sl"></span></label></div>
       <button class="btn-logout" onclick="logout()" style="margin-top:14px;">${t('logout')}</button>
     `:''}
   `;
