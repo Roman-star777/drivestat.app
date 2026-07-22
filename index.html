@@ -1579,6 +1579,19 @@ function dphForDay(dateStr){
     .reduce((a,e)=>a+e.amount,0);
   return dphFromNetto(boltNet+manualNet);
 }
+// ПДВ за період [from,to]: Bolt дохід + ручні Uber/Liftago доходи в межах періоду
+function dphForPeriod(from,to){
+  if(!state.settings?.dphEnabled) return 0;
+  const boltNet=(state.boltData?.orders||[])
+    .filter(o=>o.order_status==='finished')
+    .filter(o=>{const ts=o.order_finished_timestamp||o.order_created_timestamp;
+                if(!ts) return false; const d=toPragueDate(ts); return d>=from&&d<=to;})
+    .reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
+  const manualNet=(state.oneTimeIncome||[])
+    .filter(e=>e.date>=from&&e.date<=to&&isDphIncome(e.name))
+    .reduce((a,e)=>a+e.amount,0);
+  return dphFromNetto(boltNet+manualNet);
+}
 
 function calcMonth(mo){
   mo=mo||todayMonth(); const s=state.settings;
@@ -1661,12 +1674,14 @@ function calcWeek(){
   const km=s.boltKmEnabled ? boltKm : getOdometerKmForPeriod(from,to);
   const vc=calcVarCosts(km);
   const oneTimeInc=(state.oneTimeIncome||[]).filter(e=>e.date>=from&&e.date<=to).reduce((a,e)=>a+e.amount,0);
+  const oneTimeExp=(state.oneTimeExpenses||[]).filter(e=>e.date>=from&&e.date<=to&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
   const weeklyFixed=(state.weeklyFixedCosts||[]).reduce((a,c)=>a+c.amount,0);
+  const dph=dphForPeriod(from,to);
   const gross=boltGross+oneTimeInc;
-  const netVarOnly=gross-vc.total;
-  const netFull=gross-vc.total-weeklyFixed;
-  const pct=weeklyFixed>0 ? Math.min(100,(gross-vc.total)/weeklyFixed*100) : 100;
-  return {gross,boltGross,oneTimeInc,km,vc,weeklyFixed,netVarOnly,netFull,pct,trips:orders.length,from,to};
+  const netVarOnly=gross-vc.total-oneTimeExp-dph;
+  const netFull=gross-vc.total-oneTimeExp-dph-weeklyFixed;
+  const pct=weeklyFixed>0 ? Math.min(100,netVarOnly/weeklyFixed*100) : 100;
+  return {gross,boltGross,oneTimeInc,oneTimeExp,km,vc,dph,weeklyFixed,netVarOnly,netFull,pct,trips:orders.length,from,to};
 }
 
 function calcToday(){
@@ -1679,9 +1694,10 @@ function calcToday(){
   // Exclude "Корекція балансу" from daily goal — only count real income
   const oneTimeInc=(state.oneTimeIncome||[]).filter(e=>e.date===d&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
   const exp=(state.oneTimeExpenses||[]).filter(e=>e.date===d&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
-  const net=boltGross+oneTimeInc-vc.total-exp;
+  const dph=dphForDay(d);
+  const net=boltGross+oneTimeInc-vc.total-exp-dph;
   const pct=s.dailyGoal>0?Math.max(0,Math.min(100,(net/s.dailyGoal)*100)):0;
-  return {boltGross,oneTimeInc,km,vc,exp,net,pct,trips:orders.length,goal:s.dailyGoal};
+  return {boltGross,oneTimeInc,km,vc,exp,dph,net,pct,trips:orders.length,goal:s.dailyGoal};
 }
 
 // ── LOGIN ──
@@ -2181,7 +2197,14 @@ function renderReports(){
                 <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">Bolt дохід</span><span style="font-size:12px;font-weight:600;color:#4FC3F7;">+${fmt(mc.boltGross)} Kč</span></div>
                 ${mc.recurringInc>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">${t('recurringInc')}</span><span style="font-size:12px;font-weight:600;color:#34D399;">+${fmt(mc.recurringInc)} Kč</span></div>`:''}
                 ${mc.oneTimeInc>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">${t('oneTimeInc')}</span><span style="font-size:12px;font-weight:600;color:#34D399;">+${fmt(mc.oneTimeInc)} Kč</span></div>`:''}
-                <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">${t('totalExp')}</span><span style="font-size:12px;font-weight:600;color:#FF6B6B;">-${fmt(mc.totalCosts)} Kč</span></div>
+                ${mc.vc.fuel>0?_hrow('Пальне',mc.vc.fuel,'#FF6B6B','-'):''}
+                ${mc.vc.amort>0?_hrow('Амортизація',mc.vc.amort,'#FF6B6B','-'):''}
+                ${mc.fixedMonthly>0?_hrow('Місячні витрати',mc.fixedMonthly,'#FF6B6B','-'):''}
+                ${mc.fixedWeekly>0?_hrow('Тижневі витрати',mc.fixedWeekly,'#FF6B6B','-'):''}
+                ${mc.oneTimeExp>0?_hrow(t('oneTimeExp'),mc.oneTimeExp,'#FF6B6B','-'):''}
+                ${mc.dph>0?_hrow(`🧾 ПДВ ${state.settings?.dphRate||21}%`,mc.dph,'#A78BFA','-'):''}
+                ${mc.incomeTax>0?_hrow(`Податок з доходу ${state.settings?.incomeTaxRate||15}%`,mc.incomeTax,'#818CF8','-'):''}
+                <div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid rgba(255,255,255,.07);margin-top:2px;"><span style="font-size:11px;color:rgba(255,255,255,.3);">${t('totalExp')}</span><span style="font-size:11px;font-weight:600;color:rgba(255,107,107,.7);">-${fmt(mc.totalCosts+mc.incomeTax)} Kč</span></div>
                 <div style="display:flex;justify-content:space-between;padding:6px 0 2px;"><span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);">Чистий</span><span style="font-size:13px;font-weight:800;color:${col};">${fmtS(mc.net)} Kč</span></div>
                 <button onclick="downloadMonthReport('${mo}')" style="width:100%;margin-top:8px;padding:9px;background:rgba(255,196,0,.08);border:1px solid rgba(255,196,0,.2);border-radius:10px;color:#FFC400;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">⬇️ Скачати звіт ${moName}</button>
               </div>
@@ -2923,9 +2946,10 @@ function calcWeekByOffset(offset){
   const vc=calcVarCosts(km);
   const oneTimeInc=(state.oneTimeIncome||[]).filter(e=>e.date>=from&&e.date<=to&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
   const oneTimeExp=(state.oneTimeExpenses||[]).filter(e=>e.date>=from&&e.date<=to&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
+  const dph=dphForPeriod(from,to);
   const gross=boltGross+oneTimeInc;
-  const netFull=gross-vc.total-oneTimeExp;
-  return {from,to,boltGross,oneTimeInc,oneTimeExp,km,vc,gross,netFull,trips:orders.length};
+  const netFull=gross-vc.total-oneTimeExp-dph;
+  return {from,to,boltGross,oneTimeInc,oneTimeExp,km,vc,dph,gross,netFull,trips:orders.length};
 }
 function buildWeekHistory(){
   // Find how many weeks back have any data (cap at 26 weeks ~ 6 months)
@@ -2954,15 +2978,20 @@ function buildWeekHistory(){
           </div>
         </div>
         <div id="${wid}-body" style="display:none;padding:0 16px 12px 16px;">
-          <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">Bolt дохід</span><span style="font-size:12px;font-weight:600;color:#4FC3F7;">+${fmt(wk.boltGross)} Kč</span></div>
-          ${wk.oneTimeInc>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">Інші доходи</span><span style="font-size:12px;font-weight:600;color:#34D399;">+${fmt(wk.oneTimeInc)} Kč</span></div>`:''}
-          ${wk.vc.fuel>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">Пальне</span><span style="font-size:12px;font-weight:600;color:#FF6B6B;">-${fmt(wk.vc.fuel)} Kč</span></div>`:''}
-          ${wk.vc.amort>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">Амортизація</span><span style="font-size:12px;font-weight:600;color:#FF6B6B;">-${fmt(wk.vc.amort)} Kč</span></div>`:''}
-          ${wk.oneTimeExp>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">${t('oneTimeExp')}</span><span style="font-size:12px;font-weight:600;color:#FF6B6B;">-${fmt(wk.oneTimeExp)} Kč</span></div>`:''}
+          ${wk.boltGross>0?_hrow('Bolt дохід',wk.boltGross,'#4FC3F7','+'):''}
+          ${wk.oneTimeInc>0?_hrow('Інші доходи',wk.oneTimeInc,'#34D399','+'):''}
+          ${wk.vc.fuel>0?_hrow('Пальне',wk.vc.fuel,'#FF6B6B','-'):''}
+          ${wk.vc.amort>0?_hrow('Амортизація',wk.vc.amort,'#FF6B6B','-'):''}
+          ${wk.oneTimeExp>0?_hrow(t('oneTimeExp'),wk.oneTimeExp,'#FF6B6B','-'):''}
+          ${wk.dph>0?_hrow(`🧾 ПДВ ${state.settings?.dphRate||21}%`,wk.dph,'#A78BFA','-'):''}
           <div style="display:flex;justify-content:space-between;padding:7px 0 2px;"><span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.6);">Чистий</span><span style="font-size:13px;font-weight:700;color:${col};">${fmtS(wk.netFull)} Kč</span></div>
         </div>
       </div>`;
     }).join('')}`;
+}
+// рядок розбивки у розгорнутих блоках історії
+function _hrow(lbl,val,col,sign){
+  return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="font-size:12px;color:rgba(255,255,255,.4);">${lbl}</span><span style="font-size:12px;font-weight:600;color:${col};">${sign}${fmt(val)} Kč</span></div>`;
 }
 function toggleWeekHist(wid){
   const b=document.getElementById(wid+'-body');
@@ -2993,6 +3022,9 @@ function renderRepWeeks(w,m,pct,progColor){
         ${w.oneTimeInc>0?`<div class="wc-row"><span class="wc-l">Інші доходи</span><span class="wc-r" style="color:var(--green);">+${fmt(w.oneTimeInc)} Kč</span></div>`:''}
         ${w.vc.fuel>0?`<div class="wc-row"><span class="wc-l">Пальне</span><span class="wc-r" style="color:var(--red);">-${fmt(w.vc.fuel)} Kč</span></div>`:''}
         ${w.vc.amort>0?`<div class="wc-row"><span class="wc-l">Амортизація</span><span class="wc-r" style="color:var(--red);">-${fmt(w.vc.amort)} Kč</span></div>`:''}
+        ${w.oneTimeExp>0?`<div class="wc-row"><span class="wc-l">${t('oneTimeExp')}</span><span class="wc-r" style="color:var(--red);">-${fmt(w.oneTimeExp)} Kč</span></div>`:''}
+        ${w.dph>0?`<div class="wc-row"><span class="wc-l">🧾 ПДВ ${state.settings?.dphRate||21}%</span><span class="wc-r" style="color:#A78BFA;">-${fmt(w.dph)} Kč</span></div>`:''}
+        ${w.weeklyFixed>0?`<div class="wc-row"><span class="wc-l">Тижневі витрати</span><span class="wc-r" style="color:var(--red);">-${fmt(w.weeklyFixed)} Kč</span></div>`:''}
         <div class="wc-row" style="border-top:1px solid rgba(255,255,255,.08);margin-top:4px;padding-top:8px;">
           <span class="wc-l" style="font-weight:700;color:rgba(255,255,255,.7);">Чистий</span>
           <span class="wc-r" style="color:${w.netFull>=0?'var(--green)':'var(--red)'};">${fmtS(w.netFull)} Kč</span>
