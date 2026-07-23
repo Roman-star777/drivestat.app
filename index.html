@@ -542,6 +542,17 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
   </div>
 </div>
 
+<!-- ВИБІР КАТЕГОРІЇ ВИТРАТИ -->
+<div id="cat-pick" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center;" onclick="if(event.target.id==='cat-pick')closeCatPick()">
+  <div style="width:100%;max-width:430px;background:#101c26;border-top-left-radius:22px;border-top-right-radius:22px;border-top:1px solid rgba(255,255,255,.1);padding:18px 18px calc(24px + env(safe-area-inset-bottom));">
+    <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:0 auto 14px;"></div>
+    <div style="font-size:10px;letter-spacing:.14em;font-weight:800;color:rgba(255,255,255,.35);margin-bottom:3px;">КАТЕГОРІЯ ВИТРАТИ</div>
+    <div id="cat-pick-name" style="font-size:15px;font-weight:700;margin-bottom:14px;"></div>
+    <div id="cat-pick-opts"></div>
+    <button onclick="closeCatPick()" style="width:100%;margin-top:6px;padding:13px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:none;color:rgba(255,255,255,.45);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Скасувати</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -741,6 +752,7 @@ const T = {
        daysTab:"Дні", weeksTab:"Тижні", monthsTab:"Місяці",
        weekCompare:"ПОРІВНЯННЯ ТИЖНІВ · чистий дохід (Kč)",
        weekHistory:"ІСТОРІЯ ПО ТИЖНЯХ", monthHistory:"ІСТОРІЯ",
+       monthCosts:"ВИТРАТИ МІСЯЦЯ", catHome:"Житло", catAuto:"Авто", catTax:"Податки", catOther:"Інше",
        trips:"поїздок", km:"км", net:"Чистий", gross:"Brutto",
        addIncome:"+ додати дохід", addIncDay:"ДОДАТИ ДОХІД ЗА ЦЕЙ ДЕНЬ", empty:"Порожньо",
        changedBy:"Змінилось на", whatMeans:"ЩО ОЗНАЧАЄ ЦЯ РІЗНИЦЯ?",
@@ -805,6 +817,7 @@ const T = {
        daysTab:"Dny", weeksTab:"Týdny", monthsTab:"Měsíce",
        weekCompare:"POROVNÁNÍ TÝDNŮ · čistý příjem (Kč)",
        weekHistory:"HISTORIE TÝDNŮ", monthHistory:"HISTORIE",
+       monthCosts:"NÁKLADY MĚSÍCE", catHome:"Bydlení", catAuto:"Auto", catTax:"Daně", catOther:"Ostatní",
        trips:"jízd", km:"km", net:"Čistý", gross:"Brutto",
        addIncome:"+ přidat příjem", addIncDay:"PŘIDAT PŘÍJEM ZA TENTO DEN", empty:"Prázdné",
        changedBy:"Změněno o", whatMeans:"CO ZNAMENÁ TENTO ROZDÍL?",
@@ -869,6 +882,7 @@ const T = {
        daysTab:"Дни", weeksTab:"Недели", monthsTab:"Месяцы",
        weekCompare:"СРАВНЕНИЕ НЕДЕЛЬ · чистый доход (Kč)",
        weekHistory:"ИСТОРИЯ ПО НЕДЕЛЯМ", monthHistory:"ИСТОРИЯ",
+       monthCosts:"РАСХОДЫ МЕСЯЦА", catHome:"Жильё", catAuto:"Авто", catTax:"Налоги", catOther:"Прочее",
        trips:"поездок", km:"км", net:"Чистый", gross:"Brutto",
        addIncome:"+ добавить доход", addIncDay:"ДОБАВИТЬ ДОХОД ЗА ЭТОТ ДЕНЬ", empty:"Пусто",
        changedBy:"Изменилось на", whatMeans:"ЧТО ОЗНАЧАЕТ ЭТА РАЗНИЦА?",
@@ -1902,13 +1916,23 @@ function renderDash(){
   const taxReserve=s.dphEnabled||s.incomeTaxEnabled ? m.dph+m.incomeTax : 0;
 
   const bars=[];
-  if(s.fuelEnabled && m.vc.fuel>0) bars.push({name:t('fuel'), val:m.vc.fuel, color:'#FB923C'});
-  if(s.amort>0 && m.vc.amort>0)   bars.push({name:t('amortCost'), val:m.vc.amort, color:'#FBBF24'});
-  (state.monthlyFixedCosts||[]).forEach(c=>bars.push({name:c.name, val:c.amount, color:'#FF453A'}));
-  (state.weeklyFixedCosts||[]).forEach(c=>bars.push({name:c.name, val:c.amount*4.33, color:'#F87171'}));
-  if(m.dph>0) bars.push({name:'🧾 ПДВ '+(s.dphRate||21)+'%', val:m.dph, color:'#A78BFA'});
-  if(m.incomeTax>0) bars.push({name:'Податок '+s.incomeTaxRate+'%', val:m.incomeTax, color:'#818CF8'});
-  const maxBar=Math.max(...bars.map(b=>b.val),1);
+  if(s.fuelEnabled && m.vc.fuel>0) bars.push({name:t('fuel'), val:m.vc.fuel, cat:'auto'});
+  if(s.amort>0 && m.vc.amort>0)   bars.push({name:t('amortCost'), val:m.vc.amort, cat:'auto'});
+  (state.monthlyFixedCosts||[]).forEach(c=>bars.push({name:c.name, val:c.amount, cat:catOf(c)}));
+  (state.weeklyFixedCosts||[]).forEach(c=>bars.push({name:c.name, val:c.amount*4.33, cat:catOf(c)}));
+  (state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(m.mo))
+    .forEach(c=>bars.push({name:c.name, val:c.amount, cat:catOf(c)}));
+  if(m.dph>0) bars.push({name:'ПДВ '+(s.dphRate||21)+'%', val:m.dph, cat:'tax'});
+  if(m.incomeTax>0) bars.push({name:'Податок '+s.incomeTaxRate+'%', val:m.incomeTax, cat:'tax'});
+
+  // групування по категоріях
+  const catTotals={}; CAT_ORDER.forEach(k=>catTotals[k]=0);
+  bars.forEach(b=>{ catTotals[b.cat]=(catTotals[b.cat]||0)+b.val; });
+  const barsTotal=bars.reduce((a,b)=>a+b.val,0)||1;
+  const catGroups=CAT_ORDER
+    .map(k=>({k, sum:catTotals[k], items:bars.filter(b=>b.cat===k).sort((a,b)=>b.val-a.val)}))
+    .filter(g=>g.sum>0)
+    .sort((a,b)=>b.sum-a.sum);
 
   const insight=rd.pctActual>=100
     ? `Місяць <span class="ins-b">покрито на ${Math.round(rd.pctActual)}%</span>. Все понад норму — твій чистий прибуток! 🎉`
@@ -2090,14 +2114,54 @@ function renderDash(){
     <div class="cst-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.12em;">${t('monthCosts')}</span>
-        <span style="font-size:13px;font-weight:700;color:#FF4545;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">-${fmt(m.totalCosts)} Kč</span>
+        <span style="font-size:15px;font-weight:800;color:#FF4545;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">-${fmt(barsTotal)} Kč</span>
       </div>
-      ${bars.map(b=>{const bw=Math.min(100,(b.val/maxBar)*100);return`
-      <div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
-        <span style="font-size:10px;color:rgba(255,255,255,.4);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${b.name}</span>
-        <div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${bw.toFixed(0)}%;background:${b.color};border-radius:2px;"></div></div>
-        <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,.4);width:48px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;">-${fmt(b.val)}</span>
-      </div>`;}).join('')}
+      ${(()=>{
+        if(!catGroups.length) return '<div style="font-size:10px;color:rgba(255,255,255,.2);text-align:center;padding:14px 0;">Витрат ще немає</div>';
+        const R=54, CIRC=2*Math.PI*R; let acc=0;
+        const segs=catGroups.map(g=>{
+          const len=(g.sum/barsTotal)*CIRC, off=-acc; acc+=len;
+          return `<circle cx="62" cy="62" r="${R}" fill="none" stroke="${CATS[g.k].col}" stroke-width="14" stroke-dasharray="${len.toFixed(1)} ${(CIRC-len).toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>`;
+        }).join('');
+        return `
+        <div style="display:flex;align-items:center;gap:16px;margin:4px 0 16px;">
+          <div style="position:relative;width:124px;height:124px;flex-shrink:0;">
+            <svg width="124" height="124" viewBox="0 0 124 124" style="transform:rotate(-90deg);">
+              <circle cx="62" cy="62" r="${R}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="14"/>
+              ${segs}
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div style="font-size:16px;font-weight:800;letter-spacing:-.02em;">${fmt(barsTotal)}</div>
+              <div style="font-size:7.5px;letter-spacing:.1em;color:rgba(255,255,255,.3);font-weight:700;margin-top:2px;">Kč / МІСЯЦЬ</div>
+            </div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
+            ${catGroups.map(g=>`<div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:9px;height:9px;border-radius:3px;background:${CATS[g.k].col};flex-shrink:0;"></span>
+              <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.75);flex:1;">${catName(g.k)}</span>
+              <span style="font-size:11px;font-weight:800;color:rgba(255,255,255,.45);">${Math.round(g.sum/barsTotal*100)}%</span>
+            </div>`).join('')}
+          </div>
+        </div>
+
+        ${catGroups.map(g=>{
+          const C=CATS[g.k], gmax=Math.max(...g.items.map(x=>x.val),1);
+          return `<div style="margin-bottom:6px;border-radius:13px;overflow:hidden;background:rgba(255,255,255,.025);">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-left:3px solid ${C.col};">
+              <span style="font-size:14px;">${C.ico}</span>
+              <span style="font-size:12.5px;font-weight:700;flex:1;">${catName(g.k)}</span>
+              <span style="font-size:13px;font-weight:800;color:${C.col};font-variant-numeric:tabular-nums;">-${fmt(g.sum)}</span>
+            </div>
+            <div style="padding:2px 12px 9px 25px;">
+              ${g.items.map(it=>`<div style="display:flex;align-items:center;gap:9px;padding:4px 0;">
+                <span style="font-size:11.5px;color:rgba(255,255,255,.45);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${it.name}</span>
+                <span style="width:48px;height:4px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;flex-shrink:0;"><span style="display:block;height:100%;width:${(it.val/gmax*100).toFixed(0)}%;background:${C.col};opacity:.65;border-radius:2px;"></span></span>
+                <span style="font-size:11.5px;font-weight:700;color:rgba(255,255,255,.65);width:56px;text-align:right;font-variant-numeric:tabular-nums;">-${fmt(it.val)}</span>
+              </div>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}`;
+      })()}
       ${m.dph>0?`<div style="margin-top:10px;padding:8px 10px;border-radius:9px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.16);font-size:9px;color:rgba(190,170,255,.8);line-height:1.5;">
         🧾 <b>ПДВ reverse charge</b> · Brutto ${fmt(m.dphBrutto)} Kč → комісія ${s.boltCommission||25}% = ${fmt(m.dphCommission)} Kč → ПДВ ${s.dphRate||21}% = <b>${fmt(m.dph)} Kč</b>
       </div>`:''}
@@ -3322,32 +3386,35 @@ function renderProfile(){
     ${_pTab==='expenses'?`
       <div class="sec-panel exp">
         <div class="sec-panel-hd"><span class="sec-panel-ico">📅</span><span class="sec-panel-ttl">${t('monthlyExp')}</span><span class="sec-panel-sub">вкажи день місяця коли платиш</span></div>
-        ${listSection('',state.monthlyFixedCosts||[],'#FF6B6B','delMonthly',c=>`${t('everyMonth')} · ${t('arrivesOn')} ${c.dueDay||1}-го`)}
+        ${listSection('',state.monthlyFixedCosts||[],'#FF6B6B','delMonthly',c=>`${t('everyMonth')} · ${t('arrivesOn')} ${c.dueDay||1}-го`,false,'monthlyFixedCosts')}
         <div class="add-row">
-          <input class="add-inp" id="mc-name" type="text" placeholder="${t('phNameExp')}">
+          <input class="add-inp" id="mc-name" type="text" placeholder="${t('phNameExp')}" oninput="suggestFormCat('mc','mc-name')">
           <input class="add-inp" id="mc-amt" type="number" inputmode="numeric" placeholder="Kč">
           <input class="add-inp" id="mc-day" type="number" inputmode="numeric" placeholder="день" style="width:60px;">
           <button class="add-btn" onclick="addMonthly()">+</button>
         </div>
+        ${catBtnRow('mc')}
       </div>
       <div class="sec-panel wk">
         <div class="sec-panel-hd"><span class="sec-panel-ico">📆</span><span class="sec-panel-ttl">${t('weeklyExp')}</span><span class="sec-panel-sub">${t('weeklyIncHint')}</span></div>
-        ${listSection('',state.weeklyFixedCosts||[],'#FB923C','delWeekly',()=>`${t('everyWeek')}`)}
+        ${listSection('',state.weeklyFixedCosts||[],'#FB923C','delWeekly',()=>`${t('everyWeek')}`,false,'weeklyFixedCosts')}
         <div class="add-row">
-          <input class="add-inp" id="wkc-name" type="text" placeholder="${t('phWeekly')}">
+          <input class="add-inp" id="wkc-name" type="text" placeholder="${t('phWeekly')}" oninput="suggestFormCat('wkc','wkc-name')">
           <input class="add-inp" id="wkc-amt" type="number" inputmode="numeric" placeholder="Kč">
           <button class="add-btn" onclick="addWeekly()">+</button>
         </div>
+        ${catBtnRow('wkc')}
       </div>
       <div class="sec-panel one-exp">
         <div class="sec-panel-hd"><span class="sec-panel-ico">🔴</span><span class="sec-panel-ttl">${t('oneTimeExp')}</span></div>
-        ${listSection('',(state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(todayMonth())),'#FF453A','deleteOneTimeExpense',c=>c.date||'',true)}
+        ${listSection('',(state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(todayMonth())),'#FF453A','deleteOneTimeExpense',c=>c.date||'',true,'oneTimeExpenses')}
         <div class="add-row">
-          <input class="add-inp" id="exp-name" type="text" placeholder="Назва...">
+          <input class="add-inp" id="exp-name" type="text" placeholder="Назва..." oninput="suggestFormCat('exp','exp-name')">
           <input class="add-inp" id="exp-amt" type="number" inputmode="numeric" placeholder="Kč">
           <input class="add-inp" id="exp-date" type="date" value="${today()}" style="width:110px;">
           <button class="add-btn" onclick="addOneTime()">+</button>
         </div>
+        ${catBtnRow('exp')}
       </div>
     `:''}
 
@@ -3474,7 +3541,86 @@ function clearOdometerBase(){
   delete state.settings.odometerBase;save();showToast('Базу скинуто');renderProfile();
 }
 
-function listSection(lbl,arr,color,delFn,subFn,useId=false){
+// ═══════════ КАТЕГОРІЇ ВИТРАТ ═══════════
+const CATS={
+  home: {ico:'🏠', col:'#4B7BFF', k:'catHome'},
+  auto: {ico:'🚗', col:'#FB923C', k:'catAuto'},
+  tax:  {ico:'🧾', col:'#A78BFA', k:'catTax'},
+  other:{ico:'📦', col:'#F472B6', k:'catOther'},
+};
+const CAT_ORDER=['home','auto','tax','other'];
+function catName(id){ return t(CATS[id]?.k||'catOther'); }
+function catOf(item){ return CATS[item?.cat] ? item.cat : 'other'; }
+
+// підказка категорії за назвою (лише підсвічує — вирішує користувач)
+function guessCat(name){
+  const n=String(name||'').toLowerCase();
+  const has=(...w)=>w.some(x=>n.includes(x));
+  if(has('byt','nájem','najem','наєм','квартир','ипотек','іпотек','internet','інтернет','интернет','energie','elektr','елект','plyn','газ','voda','vodn','воду','вода','nájemné','komunál','комунал')) return 'home';
+  if(has('auto','авто','pojist','страхов','pneu','шин','servis','сервіс','сервис','myčk','мийк','мойк','octav','škoda','skoda','benz','нафт','palivo','пальн','stk','техогляд','leasing','лізинг','лизинг','parkov','парков')) return 'auto';
+  if(has('osvč','osvc','освч','daň','dan','подат','налог','dph','пдв','ндс','соціал','социал','zdravot','медич','финанц','фінанс úřad')) return 'tax';
+  return 'other';
+}
+
+// зміна категорії існуючої витрати
+let _catPickCtx=null;
+function openCatPick(arrName,id){
+  _catPickCtx={arrName,id};
+  const arr=state[arrName]||[];
+  const item=arr.find(x=>String(x.id)===String(id));
+  const cur=catOf(item);
+  const el=document.getElementById('cat-pick');
+  if(!el) return;
+  document.getElementById('cat-pick-name').textContent=item?.name||'';
+  document.getElementById('cat-pick-opts').innerHTML=CAT_ORDER.map(k=>{
+    const C=CATS[k], on=(k===cur);
+    return `<button onclick="applyCat('${k}')" style="display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;margin-bottom:7px;border-radius:13px;cursor:pointer;font-family:inherit;text-align:left;
+      background:${on?C.col+'1f':'rgba(255,255,255,.04)'};border:1px solid ${on?C.col+'59':'rgba(255,255,255,.08)'};color:${on?C.col:'rgba(255,255,255,.6)'};">
+      <span style="font-size:17px;">${C.ico}</span>
+      <span style="font-size:14px;font-weight:700;flex:1;">${catName(k)}</span>
+      ${on?'<span style="font-size:14px;">✓</span>':''}
+    </button>`;
+  }).join('');
+  el.style.display='flex';
+}
+function closeCatPick(){ const el=document.getElementById('cat-pick'); if(el) el.style.display='none'; _catPickCtx=null; }
+function applyCat(k){
+  if(!_catPickCtx) return;
+  const {arrName,id}=_catPickCtx;
+  const item=(state[arrName]||[]).find(x=>String(x.id)===String(id));
+  if(item){ item.cat=k; save(); }
+  closeCatPick(); renderProfile(); renderDash();
+}
+
+// вибір категорії у формі додавання
+let _catSel={mc:'other',wkc:'other',exp:'other'};
+let _catManual={mc:false,wkc:false,exp:false};
+function paintCatBtns(form){
+  document.querySelectorAll(`[data-catform="${form}"]`).forEach(b=>{
+    const k=b.dataset.cat, on=(k===_catSel[form]), C=CATS[k];
+    b.style.background=on?C.col+'24':'rgba(255,255,255,.04)';
+    b.style.borderColor=on?C.col+'5c':'rgba(255,255,255,.08)';
+    b.style.color=on?C.col:'rgba(255,255,255,.3)';
+  });
+}
+function pickFormCat(form,k){ _catSel[form]=k; _catManual[form]=true; paintCatBtns(form); }
+function suggestFormCat(form,inputId){
+  if(_catManual[form]) return;
+  const v=document.getElementById(inputId)?.value||'';
+  _catSel[form]=guessCat(v); paintCatBtns(form);
+}
+function resetFormCat(form){ _catSel[form]='other'; _catManual[form]=false; }
+function catBtnRow(form){
+  return `<div style="display:flex;gap:5px;margin-top:7px;">${CAT_ORDER.map(k=>{
+    const C=CATS[k], on=(k===_catSel[form]);
+    return `<button data-catform="${form}" data-cat="${k}" onclick="pickFormCat('${form}','${k}')"
+      style="flex:1;padding:7px 4px;border-radius:9px;font-size:9.5px;font-weight:700;cursor:pointer;font-family:inherit;
+      background:${on?C.col+'24':'rgba(255,255,255,.04)'};border:1px solid ${on?C.col+'5c':'rgba(255,255,255,.08)'};color:${on?C.col:'rgba(255,255,255,.3)'};">
+      ${C.ico} ${catName(k)}</button>`;
+  }).join('')}</div>`;
+}
+
+function listSection(lbl,arr,color,delFn,subFn,useId=false,catArr=null){
   if(!arr.length) return `<div style="font-size:10px;color:rgba(255,255,255,.2);text-align:center;padding:8px 0 12px;">Порожньо</div>`;
   return `<div class="dyn-list">${arr.map((c,i)=>`
     <div class="dyn-item">
@@ -3483,6 +3629,7 @@ function listSection(lbl,arr,color,delFn,subFn,useId=false){
         <div class="dyn-name">${c.name}</div>
         ${subFn?`<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:1px;">${subFn(c)}</div>`:''}
       </div>
+      ${catArr?(()=>{const k=catOf(c),C=CATS[k];return `<button onclick="openCatPick('${catArr}','${c.id}')" title="${catName(k)}" style="background:${C.col}1f;border:1px solid ${C.col}45;color:${C.col};font-size:11px;border-radius:8px;cursor:pointer;padding:4px 7px;margin-right:6px;flex-shrink:0;font-family:inherit;">${C.ico}</button>`;})():''}
       <span class="dyn-amt" style="color:${color};">${c.amount?`${fmt(c.amount)} Kč`:c.val||''}</span>
       <button onclick="${delFn}('${c.id!=null?c.id:i}')" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:14px;cursor:pointer;margin-left:8px;padding:2px 4px;">✕</button>
     </div>`).join('')}</div>`;
@@ -3560,8 +3707,8 @@ function addMonthly(){
   const d=parseInt(document.getElementById('mc-day')?.value)||1;
   if(!n||!a){showToast(t('fillAll'));return;}
   if(!state.monthlyFixedCosts)state.monthlyFixedCosts=[];
-  state.monthlyFixedCosts.push({id:Date.now()+'',name:n,amount:a,dueDay:d});
-  save();showToast(t('added'));renderProfile();
+  state.monthlyFixedCosts.push({id:Date.now()+'',name:n,amount:a,dueDay:d,cat:_catSel.mc});
+  resetFormCat('mc');save();showToast(t('added'));renderProfile();renderDash();
 }
 
 function addWeeklyIncome(){
@@ -3587,8 +3734,8 @@ function addWeekly(){
   const a=parseInt(document.getElementById('wkc-amt')?.value)||0;
   if(!n||!a){showToast(t('fillAll'));return;}
   if(!state.weeklyFixedCosts)state.weeklyFixedCosts=[];
-  state.weeklyFixedCosts.push({id:Date.now()+'',name:n,amount:a});
-  save();showToast(t('added'));renderProfile();
+  state.weeklyFixedCosts.push({id:Date.now()+'',name:n,amount:a,cat:_catSel.wkc});
+  resetFormCat('wkc');save();showToast(t('added'));renderProfile();renderDash();
 }
 
 function addRecurring(){
@@ -3629,8 +3776,8 @@ function addOneTime(){
   const d=document.getElementById('exp-date')?.value||today();
   if(!n||!a){showToast(t('fillAll'));return;}
   if(!state.oneTimeExpenses)state.oneTimeExpenses=[];
-  state.oneTimeExpenses.push({id:Date.now()+'',name:n,amount:a,date:d});
-  save();showToast(t('added'));renderProfile();
+  state.oneTimeExpenses.push({id:Date.now()+'',name:n,amount:a,date:d,cat:_catSel.exp});
+  resetFormCat('exp');save();showToast(t('added'));renderProfile();renderDash();
 }
 
 
