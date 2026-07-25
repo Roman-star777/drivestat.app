@@ -29,11 +29,11 @@ try {
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background-color:#082434;background-image:
-    radial-gradient(ellipse 130% 90% at 50% -20%, #5EE0CE 0%, #2D9FB0 30%, #1B6B85 55%, #0E3A52 78%, #082434 100%),
-    radial-gradient(ellipse 60% 35% at 25% 8%, rgba(255,255,255,.16), transparent 60%),
-    radial-gradient(ellipse 45% 30% at 80% 0%, rgba(190,255,245,.12), transparent 55%),
-    radial-gradient(ellipse 70% 40% at 50% 100%, rgba(0,0,0,.15), transparent 70%),
+html,body{height:100%;background-color:#050d0a;background-image:
+    radial-gradient(ellipse 130% 90% at 50% -20%, #0d3d2a 0%, #0a2e20 32%, #071e16 58%, #05130e 80%, #050d0a 100%),
+    radial-gradient(ellipse 60% 35% at 25% 8%, rgba(1,204,116,.10), transparent 60%),
+    radial-gradient(ellipse 45% 30% at 80% 0%, rgba(94,224,180,.08), transparent 55%),
+    radial-gradient(ellipse 70% 40% at 50% 100%, rgba(0,0,0,.25), transparent 70%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
   background-blend-mode:normal,normal,normal,normal,overlay;
   background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,repeat;
@@ -41,9 +41,9 @@ html,body{height:100%;background-color:#082434;background-image:
 /* Tinkoff/Plata style: тісні цифри, щільний шрифт */
 .num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;letter-spacing:-.03em;}
 :root{
-  --accent:#4B7BFF;
-  --accent-dim:rgba(75,123,255,.12);
-  --accent-border:rgba(75,123,255,.2);
+  --accent:#01CC74;
+  --accent-dim:rgba(1,204,116,.12);
+  --accent-border:rgba(1,204,116,.25);
   --green:#01CC74;
   --green-dim:rgba(1,204,116,.08);
   --green-border:rgba(1,204,116,.18);
@@ -65,7 +65,7 @@ html,body{height:100%;background-color:#082434;background-image:
 .ln-top{text-align:center;margin-bottom:32px;}
 .ln-icon{font-size:52px;display:block;margin-bottom:12px;}
 .ln-brand{font-size:30px;font-weight:700;color:#fff;letter-spacing:-.5px;}
-.ln-brand span{color:#4B7BFF;}
+.ln-brand span{color:#00E38A;}
 .ln-slogan{font-size:13px;color:rgba(255,255,255,.3);margin-top:6px;}
 .role-row{display:flex;gap:10px;width:100%;max-width:320px;margin-bottom:22px;}
 .role-btn{flex:1;padding:13px 8px;border-radius:14px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;text-align:center;transition:all .15s;}
@@ -98,8 +98,8 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .nb{flex:1;background:transparent;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0;font-family:inherit;}
 .nb-icon{font-size:22px;}
 .nb-lbl{font-size:9px;color:rgba(255,255,255,.2);font-weight:500;}
-.nb.active .nb-lbl{color:#4B7BFF;font-weight:700;}
-.nb-dot{width:4px;height:4px;border-radius:2px;background:#4B7BFF;display:none;}
+.nb.active .nb-lbl{color:#00E38A;font-weight:700;}
+.nb-dot{width:4px;height:4px;border-radius:2px;background:#00E38A;display:none;}
 .nb.active .nb-dot{display:block;}
 
 /* ── CARDS ── */
@@ -184,7 +184,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 /* ── REPORTS TABS ── */
 .rep-tabs{display:flex;gap:5px;margin-bottom:12px;background:rgba(8,14,17,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:4px;}
 .rep-tab{flex:1;padding:8px 6px;border-radius:10px;font-size:11px;font-weight:600;border:none;background:transparent;color:var(--text-muted);cursor:pointer;font-family:inherit;transition:all .15s;}
-.rep-tab.on{background:rgba(75,123,255,.12);border:1px solid rgba(75,123,255,.18);color:#4B7BFF;}
+.rep-tab.on{background:rgba(0,227,138,.12);border:1px solid rgba(0,227,138,.18);color:#00E38A;}
 
 /* ── DUAL BAR DAY ROW ── */
 .day-row-new{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .1s;}
@@ -280,7 +280,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 
 /* ── PROFILE TAB ── */
 .usr-card{display:flex;align-items:center;gap:14px;background:rgba(8,14,17,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:16px;margin-bottom:14px;}
-.usr-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#4B7BFF,#01CC74);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;}
+.usr-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#00E38A,#01CC74);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;}
 .usr-name{font-size:16px;font-weight:700;}
 .usr-role{font-size:11px;color:rgba(255,255,255,.3);margin-top:2px;}
 
@@ -324,7 +324,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .ai-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,196,0,.1);border:1px solid rgba(255,196,0,.25);color:#FFC400;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .ai-btn-green{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.25);color:#34D399;}
 
-.btn-save{width:100%;padding:15px;background:#4B7BFF;border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;}
+.btn-save{width:100%;padding:15px;background:#00E38A;border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;}
 .btn-logout{width:100%;padding:13px;background:rgba(255,69,58,.07);border:1px solid rgba(255,69,58,.18);border-radius:12px;color:#FF453A;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px;}
 
 /* ── ONBOARDING ── */
@@ -342,7 +342,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .ob-inp-body{flex:1;min-width:0;}
 .ob-inp-lbl{font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.1em;margin-bottom:4px;}
 .ob-inp{width:100%;background:transparent;border:none;color:#FFC400;font-size:16px;font-weight:700;font-family:inherit;outline:none;padding:0;}
-.ob-btn{width:100%;padding:16px;background:#4B7BFF;border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;max-width:320px;margin-top:6px;}
+.ob-btn{width:100%;padding:16px;background:#00E38A;border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;max-width:320px;margin-top:6px;}
 .ob-skip{font-size:12px;color:rgba(255,255,255,.2);margin-top:14px;cursor:pointer;text-decoration:underline;}
 .ob-list{width:100%;max-width:320px;display:flex;flex-direction:column;gap:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;}
 .ob-list-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05);}
@@ -359,7 +359,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 .add-row{display:flex;gap:8px;align-items:center;margin-top:10px;}
 .add-inp{flex:1;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#fff;padding:11px 14px;font-size:15px;font-family:inherit;outline:none;-webkit-appearance:none;}
 .add-inp::placeholder{color:rgba(255,255,255,.3);}
-.add-inp:focus{border-color:rgba(75,123,255,.5);}
+.add-inp:focus{border-color:rgba(0,227,138,.5);}
 .add-row .add-btn,.add-btn{width:42px;height:42px;flex-shrink:0;border-radius:12px;background:rgba(255,196,0,.1);border:1px solid rgba(255,196,0,.3);color:#FFC400;font-size:22px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;line-height:1;}
 .add-btn:active{transform:scale(.94);}
 
@@ -466,6 +466,11 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-w
 }
 .cash-card-sub{
   font-size:11px;color:rgba(255,255,255,.5);margin-top:9px;font-weight:500;
+}
+/* режим редагування / вибору — суцільний темний фон без машини */
+.cash-card.editing{
+  background-image:linear-gradient(160deg,#0a2018 0%,#071510 100%);
+  min-height:auto;
 }
 .rings-card{
   background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
@@ -1972,13 +1977,13 @@ function renderDash(){
 
   document.getElementById('tab-dash').innerHTML = `
     <!-- ═══ ЗЕЛЕНА КАРТКА З МАШИНОЮ ═══ -->
-    <div class="cash-card">
+    <div class="cash-card${(_editingBalance||_balanceChoice)?' editing':''}">
       <div class="cash-card-lbl">💰 ${t('onHand')}</div>
       ${_balanceChoice?`
         <!-- CHOICE: expense type -->
         ${_balanceCardChoice?`
           <!-- CARD SELECTION -->
-          <div style="background:rgba(0,0,0,.35);border:1.5px solid rgba(255,184,0,.3);border-radius:16px;padding:12px 14px;margin:0 4px 10px;text-align:left;">
+          <div style="background:rgba(0,0,0,.35);border:1.5px solid rgba(255,184,0,.3);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-align:left;">
             <div style="font-size:9px;color:rgba(255,255,255,.5);margin-bottom:8px;">Яку карточку позначити як оплачену?</div>
             ${(()=>{
               const upcoming=calcUpcoming().filter(u=>!isPaid(u.dueDay));
@@ -1998,7 +2003,7 @@ function renderDash(){
             <span style="font-size:20px;opacity:.5;"> Kč</span>
           </div>
           <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:12px;">${t('changedBy')} <span style="color:#FF4545;font-weight:700;">${fmt(_balanceChoice.diff)} Kč</span></div>
-          <div style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 14px;margin:0 4px 10px;text-align:left;">
+          <div style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 14px;margin-bottom:10px;text-align:left;">
             <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.1em;margin-bottom:10px;">${t('whatMeans')}</div>
             <button onclick="_applyBalanceExpense(${Math.abs(_balanceChoice.diff)})" style="width:100%;background:rgba(255,69,69,.08);border:1px solid rgba(255,69,69,.2);border-radius:11px;color:#fff;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:inherit;text-align:left;">
               <div style="font-size:12px;font-weight:700;margin-bottom:2px;">${t('separateExp')}</div>
@@ -2013,24 +2018,24 @@ function renderDash(){
         `}
       `:_editingBalance?`
         <!-- INPUT MODE -->
-        <div style="background:rgba(0,0,0,.35);border:1.5px solid rgba(75,123,255,.35);border-radius:16px;padding:14px 16px;margin:0 8px 10px;">
+        <div style="background:rgba(0,0,0,.3);border:1.5px solid rgba(0,227,138,.35);border-radius:14px;padding:13px 14px;margin-bottom:10px;">
           <div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:8px;text-align:left;">${t('enterReal')}</div>
           <div style="display:flex;align-items:center;gap:8px;">
-            <input id="manual-bal-inp" type="number" inputmode="numeric" value="${rd.netActual}"
-              style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:26px;font-weight:700;font-family:inherit;padding:10px 12px;outline:none;text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">
-            <span style="font-size:16px;color:rgba(255,255,255,.4);font-weight:600;">Kč</span>
+            <input id="manual-bal-inp" type="number" inputmode="decimal" value="${Math.round(rd.netActual)}"
+              style="flex:1;min-width:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:24px;font-weight:700;font-family:inherit;padding:10px 12px;outline:none;text-align:left;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">
+            <span style="font-size:16px;color:rgba(255,255,255,.4);font-weight:600;flex-shrink:0;">Kč</span>
           </div>
         </div>
-        <div style="display:flex;gap:8px;margin:0 8px;">
-          <button onclick="toggleBalanceEdit()" style="flex:1;padding:11px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Скасувати</button>
-          <button onclick="saveManualBalance()" style="flex:2;padding:11px;background:rgba(75,123,255,.15);border:1px solid rgba(75,123,255,.3);border-radius:12px;color:#7BA8FF;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Зберегти</button>
+        <div style="display:flex;gap:8px;">
+          <button onclick="toggleBalanceEdit()" style="flex:1;padding:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;color:rgba(255,255,255,.55);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Скасувати</button>
+          <button onclick="saveManualBalance()" style="flex:2;padding:12px;background:rgba(0,227,138,.15);border:1px solid rgba(0,227,138,.3);border-radius:12px;color:#5FF0B0;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Зберегти</button>
         </div>
       `:`
         <!-- NORMAL DISPLAY -->
-        <div style="position:relative;display:inline-block;">
+        <div style="display:flex;align-items:baseline;gap:8px;">
           <span class="cash-card-val">${fmt(rd.netActual)}</span>
-          <span style="font-size:20px;opacity:.55;font-weight:700;"> Kč</span>
-          <button onclick="toggleBalanceEdit()" style="position:absolute;right:-38px;bottom:6px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:5px 7px;font-size:13px;cursor:pointer;color:rgba(255,255,255,.6);line-height:1;">✏️</button>
+          <span style="font-size:20px;opacity:.55;font-weight:700;">Kč</span>
+          <button onclick="toggleBalanceEdit()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:5px 8px;font-size:13px;cursor:pointer;color:rgba(255,255,255,.65);line-height:1;align-self:center;">✏️</button>
         </div>
         <div class="cash-card-sub">${t('onHand')==='НА РУКАХ ЗАРАЗ'?'Доступно зараз':''}</div>
       `}
@@ -2343,7 +2348,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
       <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:.12em;">${t('daysHist')}</span>
       <div style="display:flex;gap:10px;">
         <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:rgba(255,255,255,.3);"><div style="width:8px;height:8px;border-radius:50%;background:#01CC74;"></div>Bolt</div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:rgba(255,255,255,.3);"><div style="width:8px;height:8px;border-radius:50%;background:#4B7BFF;"></div>Інші</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:rgba(255,255,255,.3);"><div style="width:8px;height:8px;border-radius:50%;background:#00E38A;"></div>Інші</div>
         <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:rgba(255,255,255,.3);"><div style="width:8px;height:8px;border-radius:50%;background:#FB923C;"></div>✏️</div>
       </div>
     </div>
@@ -2386,7 +2391,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
             <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
               <div style="height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;display:flex;gap:1px;">
                 ${day.bolt>0?`<div style="width:${boltW.toFixed(0)}%;height:100%;background:#01CC74;border-radius:3px 0 0 3px;"></div>`:''}
-                ${day.other>0?`<div style="width:${otherW.toFixed(0)}%;height:100%;background:#4B7BFF;"></div>`:''}
+                ${day.other>0?`<div style="width:${otherW.toFixed(0)}%;height:100%;background:#00E38A;"></div>`:''}
               </div>
             </div>
             ${_ringSVG}
@@ -2406,8 +2411,8 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
               </div>`:''}
               ${(state.oneTimeIncome||[]).filter(e=>e.date===d&&e.name!=='Корекція балансу').map(e=>`
               <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">
-                <div style="display:flex;align-items:center;gap:6px;"><div style="width:6px;height:6px;border-radius:50%;background:#4B7BFF;"></div><span style="font-size:10px;color:rgba(255,255,255,.5);">${e.name}</span></div>
-                <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:10px;font-weight:700;color:#4B7BFF;">+${fmt(e.amount)} Kč</span><button onclick="deleteOneTimeIncome('${e.id}')" style="background:rgba(255,69,69,.1);border:1px solid rgba(255,69,69,.2);border-radius:5px;color:#FF6B6B;font-size:8px;padding:2px 5px;cursor:pointer;font-family:inherit;">✕</button></div>
+                <div style="display:flex;align-items:center;gap:6px;"><div style="width:6px;height:6px;border-radius:50%;background:#00E38A;"></div><span style="font-size:10px;color:rgba(255,255,255,.5);">${e.name}</span></div>
+                <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:10px;font-weight:700;color:#00E38A;">+${fmt(e.amount)} Kč</span><button onclick="deleteOneTimeIncome('${e.id}')" style="background:rgba(255,69,69,.1);border:1px solid rgba(255,69,69,.2);border-radius:5px;color:#FF6B6B;font-size:8px;padding:2px 5px;cursor:pointer;font-family:inherit;">✕</button></div>
               </div>`).join('')}
               ${(state.oneTimeIncome||[]).filter(e=>e.date===d&&e.name==='Корекція балансу').map(e=>`
               <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">
@@ -2433,12 +2438,12 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
               </div>`:''}
             </div>
             <!-- Quick add income -->
-            <div style="background:rgba(75,123,255,.06);border:1px solid rgba(75,123,255,.15);border-radius:10px;padding:8px 10px;">
-              <div style="font-size:8px;font-weight:700;color:rgba(75,123,255,.6);letter-spacing:.08em;margin-bottom:6px;">➕ ДОДАТИ ДОХІД ЗА ЦЕЙ ДЕНЬ</div>
+            <div style="background:rgba(0,227,138,.06);border:1px solid rgba(0,227,138,.15);border-radius:10px;padding:8px 10px;">
+              <div style="font-size:8px;font-weight:700;color:rgba(0,227,138,.6);letter-spacing:.08em;margin-bottom:6px;">➕ ДОДАТИ ДОХІД ЗА ЦЕЙ ДЕНЬ</div>
               <div style="display:flex;gap:6px;">
                 <input style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:#fff;padding:7px 9px;font-size:11px;font-family:inherit;outline:none;" id="dx-name-${d}" type="text" placeholder="Uber, готівка...">
-                <input style="width:75px;flex-shrink:0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:#4B7BFF;padding:7px 8px;font-size:11px;font-weight:700;font-family:inherit;outline:none;text-align:right;" id="dx-amt-${d}" type="number" inputmode="numeric" placeholder="Kč">
-                <button onclick="addDayIncome('${d}')" style="background:rgba(75,123,255,.12);border:1px solid rgba(75,123,255,.25);border-radius:8px;color:#4B7BFF;font-size:13px;font-weight:700;padding:7px 11px;cursor:pointer;font-family:inherit;flex-shrink:0;">+</button>
+                <input style="width:75px;flex-shrink:0;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:#00E38A;padding:7px 8px;font-size:11px;font-weight:700;font-family:inherit;outline:none;text-align:right;" id="dx-amt-${d}" type="number" inputmode="numeric" placeholder="Kč">
+                <button onclick="addDayIncome('${d}')" style="background:rgba(0,227,138,.12);border:1px solid rgba(0,227,138,.25);border-radius:8px;color:#00E38A;font-size:13px;font-weight:700;padding:7px 11px;cursor:pointer;font-family:inherit;flex-shrink:0;">+</button>
               </div>
             </div>
           </div>`:''}
@@ -2449,7 +2454,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
             <span style="font-size:8px;color:rgba(255,255,255,.18);">${day.trips} поїздок${day.km>0?' · '+fmt(day.km)+' км':''}</span>
             ${_dphDay>0?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:5px;background:rgba(167,139,250,.1);color:#A78BFA;border:1px solid rgba(167,139,250,.2);margin-left:4px;">🧾 ПДВ −${fmt(_dphDay)} Kč</span>`:''}
             ${day.correction?`<span style="font-size:8px;color:#FB923C;font-weight:600;margin-left:4px;">✏️ корекція балансу</span>`:''}
-            <span style="margin-left:auto;font-size:8px;color:rgba(75,123,255,.35);font-weight:600;">+ додати дохід</span>
+            <span style="margin-left:auto;font-size:8px;color:rgba(0,227,138,.35);font-weight:600;">+ додати дохід</span>
           </div>`:''}
         </div>`;
       }).join('')}`;
@@ -2677,7 +2682,7 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
         'netto':  {lbl:t('monthNetto'),      val:fmtS(netto),       col:netto>=0?'#01CC74':'#FF4545', sub:`${diff>=0?'▲':'▼'} ${diff>=0?'+':''}${fmt(Math.abs(diff))} vs мин.`},
         'prev':   {lbl:t('monthPrev'),          val:prevCalc?fmtS(prevCalc.net):'—', col:'rgba(255,255,255,.4)', sub:last6[1]},
         'brutto': {lbl:t('monthBrutto'),           val:'+'+fmt(m.gross),  col:'#FFB800', sub:'Bolt+планові'},
-        'goal':   {lbl:'ЦІЛЬ/ДЕНЬ',        val:fmt(dailyTarget),  col:'#7BA8FF', sub:'з налаштувань'},
+        'goal':   {lbl:'ЦІЛЬ/ДЕНЬ',        val:fmt(dailyTarget),  col:'#5FF0B0', sub:'з налаштувань'},
         'avg':    {lbl:'СЕРЕД/ДЕНЬ',       val:'+'+fmt(avgDay),   col:'#FFB800', sub:'факт цього міс.'},
         'costs':  {lbl:'ВИТРАТИ',          val:'-'+fmt(m.totalCosts), col:'#FF4545', sub:'фіксовані+разові'},
         'proj':   {lbl:'ПРОГНОЗ/30',       val:projPoints.length>0?fmtS(Math.round(projPoints[projPoints.length-1].v)):'-', col:'#A78BFA', sub:'до кінця місяця'},
@@ -2702,10 +2707,10 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
             allKeys.map(k=>{
               const w=allWidgets[k];
               const on=active.includes(k);
-              return `<div onclick="toggleRepWidget('${k}')" style="cursor:pointer;background:${on?'rgba(75,123,255,.15)':'rgba(255,255,255,.04)'};border:1px solid ${on?'rgba(75,123,255,.3)':'rgba(255,255,255,.08)'};border-radius:12px;padding:8px 12px;min-width:90px;text-align:center;flex-shrink:0;">
+              return `<div onclick="toggleRepWidget('${k}')" style="cursor:pointer;background:${on?'rgba(0,227,138,.15)':'rgba(255,255,255,.04)'};border:1px solid ${on?'rgba(0,227,138,.3)':'rgba(255,255,255,.08)'};border-radius:12px;padding:8px 12px;min-width:90px;text-align:center;flex-shrink:0;">
                 <div style="font-size:7px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.07em;margin-bottom:3px;">${w.lbl}</div>
                 <div style="font-size:13px;font-weight:700;color:${on?w.col:'rgba(255,255,255,.2)'};font-variant-numeric:tabular-nums;">${w.val}</div>
-                <div style="font-size:8px;color:${on?'#4B7BFF':'rgba(255,255,255,.2)'};margin-top:3px;">${on?'✓ додано':'+ додати'}</div>
+                <div style="font-size:8px;color:${on?'#00E38A':'rgba(255,255,255,.2)'};margin-top:3px;">${on?'✓ додано':'+ додати'}</div>
               </div>`;
             }).join('')
           :
@@ -2727,8 +2732,8 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
       <div style="font-size:11px;font-weight:700;color:#fff;">${moNames[chartMo.slice(5)]||chartMo.slice(5)} ${chartMo.slice(0,4)}</div>
       <div style="display:flex;gap:5px;align-items:center;">
         <button onclick="shiftChartMonth(-1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:rgba(255,255,255,.5);padding:4px 9px;font-size:9px;font-weight:600;cursor:pointer;font-family:inherit;">← ${moNames[String(cm===1?12:cm-1).padStart(2,'0')]}</button>
-        <button onclick="setChartZoom(2)" style="background:${_chartZoom>=2?'rgba(75,123,255,.15)':'rgba(255,255,255,.06)'};border:1px solid ${_chartZoom>=2?'rgba(75,123,255,.3)':'rgba(255,255,255,.09)'};border-radius:8px;color:${_chartZoom>=2?'#7BA8FF':'rgba(255,255,255,.5)'};padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;">⊕</button>
-        <button onclick="setChartZoom(1)" style="background:${_chartZoom<=1?'rgba(75,123,255,.15)':'rgba(255,255,255,.06)'};border:1px solid ${_chartZoom<=1?'rgba(75,123,255,.3)':'rgba(255,255,255,.09)'};border-radius:8px;color:${_chartZoom<=1?'#7BA8FF':'rgba(255,255,255,.5)'};padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;">⊖</button>
+        <button onclick="setChartZoom(2)" style="background:${_chartZoom>=2?'rgba(0,227,138,.15)':'rgba(255,255,255,.06)'};border:1px solid ${_chartZoom>=2?'rgba(0,227,138,.3)':'rgba(255,255,255,.09)'};border-radius:8px;color:${_chartZoom>=2?'#5FF0B0':'rgba(255,255,255,.5)'};padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;">⊕</button>
+        <button onclick="setChartZoom(1)" style="background:${_chartZoom<=1?'rgba(0,227,138,.15)':'rgba(255,255,255,.06)'};border:1px solid ${_chartZoom<=1?'rgba(0,227,138,.3)':'rgba(255,255,255,.09)'};border-radius:8px;color:${_chartZoom<=1?'#5FF0B0':'rgba(255,255,255,.5)'};padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;">⊖</button>
         <button onclick="shiftChartMonth(1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:rgba(255,255,255,.5);padding:4px 9px;font-size:9px;font-weight:600;cursor:pointer;font-family:inherit;">${moNames[String(cm===12?1:cm+1).padStart(2,'0')]} →</button>
       </div>
     </div>
@@ -2831,9 +2836,9 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
               const yTo=toY(balAfter);
               const label=zoom>=2?`+${fmt(amt)}`:'';
               // Arrow goes UP (yTo < yFrom since higher value = lower y coordinate)
-              return `<line x1="${dx.toFixed(1)}" y1="${yFrom.toFixed(1)}" x2="${dx.toFixed(1)}" y2="${(yTo+8).toFixed(1)}" stroke="#4B7BFF" stroke-width="2" opacity=".8"/>
-              <polygon points="${dx},${yTo} ${(dx-5)},${(yTo+10)} ${(dx+5)},${(yTo+10)}" fill="#4B7BFF" opacity=".85"/>
-              ${label?`<rect x="${(dx+6).toFixed(1)}" y="${(yTo-1).toFixed(1)}" width="${label.length*4.8+4}" height="11" fill="rgba(75,123,255,.2)" rx="3"/><text x="${(dx+8).toFixed(1)}" y="${(yTo+8).toFixed(1)}" font-size="7" fill="#7BA8FF" font-family="Inter" font-weight="bold">${label}</text>`:''}`;
+              return `<line x1="${dx.toFixed(1)}" y1="${yFrom.toFixed(1)}" x2="${dx.toFixed(1)}" y2="${(yTo+8).toFixed(1)}" stroke="#00E38A" stroke-width="2" opacity=".8"/>
+              <polygon points="${dx},${yTo} ${(dx-5)},${(yTo+10)} ${(dx+5)},${(yTo+10)}" fill="#00E38A" opacity=".85"/>
+              ${label?`<rect x="${(dx+6).toFixed(1)}" y="${(yTo-1).toFixed(1)}" width="${label.length*4.8+4}" height="11" fill="rgba(0,227,138,.2)" rx="3"/><text x="${(dx+8).toFixed(1)}" y="${(yTo+8).toFixed(1)}" font-size="7" fill="#5FF0B0" font-family="Inter" font-weight="bold">${label}</text>`:''}`;
             }).join('')}
 
             <!-- WARNING BADGE if behind plan -->
@@ -2858,7 +2863,7 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
               const hasInc=incomeOnDay[d]&&d>todayDayNum;
               const show=zoom>=2||(d===1||d%5===0||d===daysInMo||isToday||hasExp||hasInc);
               if(!show)return'';
-              const col=isToday?'#01CC74':hasExp?'rgba(255,69,69,.7)':hasInc?'rgba(75,123,255,.8)':'rgba(255,255,255,.22)';
+              const col=isToday?'#01CC74':hasExp?'rgba(255,69,69,.7)':hasInc?'rgba(0,227,138,.8)':'rgba(255,255,255,.22)';
               return `<text x="${dx.toFixed(1)}" y="${H+14}" font-size="${isToday?8.5:7}" fill="${col}" text-anchor="middle" font-family="Inter" ${isToday?'font-weight="bold"':''}>${d}${isToday?'✦':''}</text>`;
             }).join('')}
           </svg>
@@ -3148,7 +3153,7 @@ function renderRepWeeks(w,m,pct,progColor){
       const bars=weeks.map(({wk,label,i},idx)=>{
         const v=wk.netFull; const pct=Math.round((v/maxVal)*100);
         const h=Math.max(2,Math.round((Math.abs(v)/maxVal)*barH));
-        const col=v>=0?(i===0?'#4B7BFF':'#01CC74'):'#FF4545';
+        const col=v>=0?(i===0?'#00E38A':'#01CC74'):'#FF4545';
         const x=idx*(barW+gap);
         const y=baseline-h;
         const isCurrent=i===0;
@@ -3218,11 +3223,11 @@ function renderSwipeCards(m,td,w){
             const d=CARD_DEFS[id];if(!d)return'';
             const on=cards.includes(id);
             const v=d.fn(m,td,w);
-            return `<div onclick="toggleDashCard('${id}')" style="cursor:pointer;background:${on?'rgba(75,123,255,.15)':'rgba(255,255,255,.04)'};border:1px solid ${on?'rgba(75,123,255,.3)':'rgba(255,255,255,.08)'};border-radius:12px;padding:8px 12px;min-width:90px;text-align:center;flex-shrink:0;">
+            return `<div onclick="toggleDashCard('${id}')" style="cursor:pointer;background:${on?'rgba(0,227,138,.15)':'rgba(255,255,255,.04)'};border:1px solid ${on?'rgba(0,227,138,.3)':'rgba(255,255,255,.08)'};border-radius:12px;padding:8px 12px;min-width:90px;text-align:center;flex-shrink:0;">
               <div style="font-size:16px;margin-bottom:3px;">${d.icon}</div>
               <div style="font-size:7px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.07em;margin-bottom:3px;">${d.lbl()}</div>
               <div style="font-size:13px;font-weight:700;color:${on?v.col:'rgba(255,255,255,.2)'};font-variant-numeric:tabular-nums;">${v.val}</div>
-              <div style="font-size:8px;color:${on?'#4B7BFF':'rgba(255,255,255,.2)'};margin-top:3px;">${on?'✓ додано':'+ додати'}</div>
+              <div style="font-size:8px;color:${on?'#00E38A':'rgba(255,255,255,.2)'};margin-top:3px;">${on?'✓ додано':'+ додати'}</div>
             </div>`;
           }).join('')}
         </div>
@@ -3378,28 +3383,28 @@ function renderProfile(){
 
     <!-- 4-TAB NAVIGATION -->
     <div style="display:flex;background:rgba(0,0,0,.25);border-radius:16px;margin-bottom:14px;padding:4px;gap:2px;">
-      <button onclick="_pTab='settings';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='settings'?'rgba(75,123,255,.15)':'none'};border:${_pTab==='settings'?'1px solid rgba(75,123,255,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='settings'?'#7BA8FF':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <div style="font-size:8px;font-weight:700;color:${_pTab==='settings'?'#7BA8FF':'rgba(255,255,255,.35)'};">${t('tabSettings')}</div>
+      <button onclick="_pTab='settings';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='settings'?'rgba(0,227,138,.15)':'none'};border:${_pTab==='settings'?'1px solid rgba(0,227,138,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='settings'?'#5FF0B0':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <div style="font-size:8px;font-weight:700;color:${_pTab==='settings'?'#5FF0B0':'rgba(255,255,255,.35)'};">${t('tabSettings')}</div>
       </button>
-      <button onclick="_pTab='expenses';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='expenses'?'rgba(75,123,255,.15)':'none'};border:${_pTab==='expenses'?'1px solid rgba(75,123,255,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='expenses'?'#7BA8FF':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="7" y1="15" x2="7.01" y2="15"/><line x1="11" y1="15" x2="13" y2="15"/></svg>
-        <div style="font-size:8px;font-weight:700;color:${_pTab==='expenses'?'#7BA8FF':'rgba(255,255,255,.35)'};">${t('tabExpenses')}</div>
+      <button onclick="_pTab='expenses';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='expenses'?'rgba(0,227,138,.15)':'none'};border:${_pTab==='expenses'?'1px solid rgba(0,227,138,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='expenses'?'#5FF0B0':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="7" y1="15" x2="7.01" y2="15"/><line x1="11" y1="15" x2="13" y2="15"/></svg>
+        <div style="font-size:8px;font-weight:700;color:${_pTab==='expenses'?'#5FF0B0':'rgba(255,255,255,.35)'};">${t('tabExpenses')}</div>
       </button>
-      <button onclick="_pTab='income';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='income'?'rgba(75,123,255,.15)':'none'};border:${_pTab==='income'?'1px solid rgba(75,123,255,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='income'?'#7BA8FF':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        <div style="font-size:8px;font-weight:700;color:${_pTab==='income'?'#7BA8FF':'rgba(255,255,255,.35)'};">${t('tabIncome')}</div>
+      <button onclick="_pTab='income';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='income'?'rgba(0,227,138,.15)':'none'};border:${_pTab==='income'?'1px solid rgba(0,227,138,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='income'?'#5FF0B0':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <div style="font-size:8px;font-weight:700;color:${_pTab==='income'?'#5FF0B0':'rgba(255,255,255,.35)'};">${t('tabIncome')}</div>
       </button>
-      <button onclick="_pTab='auto';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='auto'?'rgba(75,123,255,.15)':'none'};border:${_pTab==='auto'?'1px solid rgba(75,123,255,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='auto'?'#7BA8FF':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-        <div style="font-size:8px;font-weight:700;color:${_pTab==='auto'?'#7BA8FF':'rgba(255,255,255,.35)'};">${t('tabAuto')}</div>
+      <button onclick="_pTab='auto';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='auto'?'rgba(0,227,138,.15)':'none'};border:${_pTab==='auto'?'1px solid rgba(0,227,138,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='auto'?'#5FF0B0':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+        <div style="font-size:8px;font-weight:700;color:${_pTab==='auto'?'#5FF0B0':'rgba(255,255,255,.35)'};">${t('tabAuto')}</div>
       </button>
     </div>
 
     ${_pTab==='settings'?`
       <div class="sec-lbl">${t('langLabel')}</div>
       <div style="display:flex;gap:7px;margin-bottom:14px;">
-        ${langs.map(l=>`<button onclick="setLang('${l.c}')" style="flex:1;padding:10px 4px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${(s.lang||'uk')===l.c?'rgba(75,123,255,.35)':'rgba(255,255,255,.08)'};background:${(s.lang||'uk')===l.c?'rgba(75,123,255,.12)':'rgba(255,255,255,.04)'};color:${(s.lang||'uk')===l.c?'#7BA8FF':'rgba(255,255,255,.4)'};">${l.f}<br>${l.n}</button>`).join('')}
+        ${langs.map(l=>`<button onclick="setLang('${l.c}')" style="flex:1;padding:10px 4px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${(s.lang||'uk')===l.c?'rgba(0,227,138,.35)':'rgba(255,255,255,.08)'};background:${(s.lang||'uk')===l.c?'rgba(0,227,138,.12)':'rgba(255,255,255,.04)'};color:${(s.lang||'uk')===l.c?'#5FF0B0':'rgba(255,255,255,.4)'};">${l.f}<br>${l.n}</button>`).join('')}
       </div>
       <div class="sec-lbl">${t('generalLabel')}</div>
       <div class="st-group" style="margin-bottom:14px;">
@@ -3495,8 +3500,8 @@ function renderProfile(){
         <div class="st-row" style="padding:10px 0 6px;">
           <div><div class="st-lbl">${t('kmSource')}</div></div>
           <div style="display:flex;gap:6px;">
-            <button onclick="${s.boltUUID?'toggleKmSource(true)':'showBoltIdHint()'}" style="padding:7px 11px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${s.boltKmEnabled?'rgba(75,123,255,.35)':'rgba(255,255,255,.08)'};background:${s.boltKmEnabled?'rgba(75,123,255,.1)':'rgba(255,255,255,.04)'};color:${s.boltKmEnabled?'#7BA8FF':'rgba(255,255,255,.4)'};">${t('boltGps')}${!s.boltUUID?' 🔒':''}</button>
-            <button onclick="toggleKmSource(false)" style="padding:7px 11px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${!s.boltKmEnabled?'rgba(75,123,255,.35)':'rgba(255,255,255,.08)'};background:${!s.boltKmEnabled?'rgba(75,123,255,.1)':'rgba(255,255,255,.04)'};color:${!s.boltKmEnabled?'#7BA8FF':'rgba(255,255,255,.4)'};">Одометр</button>
+            <button onclick="${s.boltUUID?'toggleKmSource(true)':'showBoltIdHint()'}" style="padding:7px 11px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${s.boltKmEnabled?'rgba(0,227,138,.35)':'rgba(255,255,255,.08)'};background:${s.boltKmEnabled?'rgba(0,227,138,.1)':'rgba(255,255,255,.04)'};color:${s.boltKmEnabled?'#5FF0B0':'rgba(255,255,255,.4)'};">${t('boltGps')}${!s.boltUUID?' 🔒':''}</button>
+            <button onclick="toggleKmSource(false)" style="padding:7px 11px;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${!s.boltKmEnabled?'rgba(0,227,138,.35)':'rgba(255,255,255,.08)'};background:${!s.boltKmEnabled?'rgba(0,227,138,.1)':'rgba(255,255,255,.04)'};color:${!s.boltKmEnabled?'#5FF0B0':'rgba(255,255,255,.4)'};">Одометр</button>
           </div>
         </div>
         <div class="st-row" style="padding:6px 0 10px;flex-direction:column;gap:6px;align-items:stretch;">
@@ -3506,7 +3511,7 @@ function renderProfile(){
           </div>
           <div style="display:flex;gap:6px;">
             <input id="st-bolt-uuid" type="text" placeholder="Identifikátor řidiče з Bolt" value="${s.boltUUID||''}" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#fff;padding:8px 10px;font-size:10px;font-family:inherit;outline:none;">
-            <button onclick="saveBoltUUID()" style="background:rgba(75,123,255,.12);border:1px solid rgba(75,123,255,.25);border-radius:9px;color:#7BA8FF;font-size:11px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:inherit;">✓</button>
+            <button onclick="saveBoltUUID()" style="background:rgba(0,227,138,.12);border:1px solid rgba(0,227,138,.25);border-radius:9px;color:#5FF0B0;font-size:11px;font-weight:700;padding:8px 12px;cursor:pointer;font-family:inherit;">✓</button>
             ${s.boltUUID?`<button onclick="clearBoltUUID()" style="background:rgba(255,69,69,.08);border:1px solid rgba(255,69,69,.15);border-radius:9px;color:#FF6B6B;font-size:11px;padding:8px 11px;cursor:pointer;font-family:inherit;">✕</button>`:''}
           </div>
         </div>
@@ -3579,7 +3584,7 @@ function clearOdometerBase(){
 
 // ═══════════ КАТЕГОРІЇ ВИТРАТ ═══════════
 const CATS={
-  home: {ico:'🏠', col:'#4B7BFF', k:'catHome'},
+  home: {ico:'🏠', col:'#00E38A', k:'catHome'},
   auto: {ico:'🚗', col:'#FB923C', k:'catAuto'},
   tax:  {ico:'🧾', col:'#A78BFA', k:'catTax'},
   other:{ico:'📦', col:'#F472B6', k:'catOther'},
