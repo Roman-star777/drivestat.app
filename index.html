@@ -2603,20 +2603,18 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
   // Future months: projected end of PREVIOUS month
   let chartStartBalance=rollover;
   if(!isCurrentMo){
-    // Walk back from current month to chartMo, accumulating projections
     const curMo=todayMonth();
     const [curY,curM]=curMo.split('-').map(Number);
     const [tgY,tgM]=chartMo.split('-').map(Number);
     const monthDiff=(tgY-curY)*12+(tgM-curM);
     if(monthDiff>0){
-      // Compute projected ending balance for current month
+      // Рахуємо КІНЦЕВИЙ баланс кожного місяця по черзі.
+      // Старт наступного місяця = кінець попереднього (безперервно, без подвоєння).
       const curDaysInMo=new Date(curY,curM,0).getDate();
       const curTodayD=new Date().getDate();
-      // Today's actual balance
-      let runBalance=0;
-      const curRd=calcRingData();
-      runBalance=curRd.netActual;
-      // Project remaining days of current month
+      let runBalance=calcRingData().netActual; // фактичний баланс сьогодні
+
+      // 1) добиваємо поточний місяць до кінця (з сьогодні до останнього дня)
       const curUpcoming=calcUpcoming().filter(u=>!isPaid(u.dueDay));
       const curExpDay={};
       curUpcoming.forEach(u=>{if(u.dueDay>curTodayD)curExpDay[u.dueDay]=(curExpDay[u.dueDay]||0)+u.total;});
@@ -2625,7 +2623,9 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
       for(let d=curTodayD+1;d<=curDaysInMo;d++){
         runBalance+=dailyTarget+(curIncDay[d]||0)-(curExpDay[d]||0);
       }
-      // For each subsequent month up to target
+      // тут runBalance = кінець поточного місяця = старт наступного
+
+      // 2) прокручуємо повні місяці МІЖ поточним і цільовим (не включаючи цільовий)
       for(let mi=1;mi<monthDiff;mi++){
         const mD=new Date(curY,curM-1+mi,1);
         const mY=mD.getFullYear(),mMo=mD.getMonth()+1;
@@ -2634,14 +2634,15 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
         const mIncDay={};
         (state.recurringIncome||[]).forEach(r=>{if(r.dueDay)mIncDay[r.dueDay]=(mIncDay[r.dueDay]||0)+(r.amount||0);});
         const mExpDay={};
-        (state.monthlyFixedCosts||[]).forEach(c=>{if(c.day)mExpDay[c.day]=(mExpDay[c.day]||0)+c.amount;});
+        (state.monthlyFixedCosts||[]).forEach(c=>{if(monthlyCountsInMonth(c,mStr)&&c.dueDay)mExpDay[c.dueDay]=(mExpDay[c.dueDay]||0)+c.amount;});
         (state.weeklyFixedCosts||[]).forEach(c=>{
-          for(let w=1;w<=4;w++){const d=Math.min(c.day+(w-1)*7,mDays);mExpDay[d]=(mExpDay[d]||0)+c.amount;}
+          for(let w=1;w<=4;w++){const d=Math.min((c.dueDay||1)+(w-1)*7,mDays);mExpDay[d]=(mExpDay[d]||0)+c.amount;}
         });
         for(let d=1;d<=mDays;d++){
           runBalance+=dailyTarget+(mIncDay[d]||0)-(mExpDay[d]||0);
         }
       }
+      // старт цільового місяця = кінець попереднього
       chartStartBalance=Math.round(runBalance);
     }
   }
