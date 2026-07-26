@@ -1236,7 +1236,9 @@ function calcUpcoming(){
   const s=state.settings;
 
   const byDay={};
+  const _mo=todayMonth();
   (state.monthlyFixedCosts||[]).forEach(c=>{
+    if(!monthlyCountsInMonth(c, _mo)) return; // варіант А: створені після дня оплати → наступний місяць
     const d=c.dueDay||1;
     if(!byDay[d]) byDay[d]=[];
     byDay[d].push(c);
@@ -1641,6 +1643,28 @@ function dphForPeriod(from,to){
   return dphFromNetto(boltNet+manualNet);
 }
 
+// ── Варіант А: чи враховувати щомісячну витрату в цьому місяці ──
+// Не враховуємо, якщо витрату СТВОРЕНО вже ПІСЛЯ її дня оплати в цьому місяці
+// (тоді вона стосується наступного місяця). id = Date.now() при створенні.
+function monthlyCountsInMonth(cost, mo){
+  const createdMs = parseInt(cost.id);
+  if(!createdMs || isNaN(createdMs)) return true; // старі записи без часу — рахуємо як раніше
+  const created = new Date(createdMs);
+  const createdMo = created.toLocaleDateString('sv-SE').slice(0,7); // YYYY-MM
+  // якщо створено в попередніх місяцях — завжди рахуємо
+  if(createdMo < mo) return true;
+  // якщо створено в майбутньому місяці (не має бути) — не рахуємо в цьому
+  if(createdMo > mo) return false;
+  // створено в ЦЕЙ місяць: рахуємо лише якщо день створення <= дня оплати
+  const dueDay = cost.dueDay || 1;
+  return created.getDate() <= dueDay;
+}
+function monthlyFixedForMonth(mo){
+  return (state.monthlyFixedCosts||[])
+    .filter(c=>monthlyCountsInMonth(c, mo))
+    .reduce((a,c)=>a+c.amount, 0);
+}
+
 function calcMonth(mo){
   mo=mo||todayMonth(); const s=state.settings;
   const orders=ordersForMonth(mo);
@@ -1657,7 +1681,7 @@ function calcMonth(mo){
   const rollover=(s.rolloverEnabled && mo===todayMonth()) ? (state.rolloverBalance||0) : 0;
   const gross=boltGross+recurringInc+oneTimeInc+rollover;
 
-  const fixedMonthly=(state.monthlyFixedCosts||[]).reduce((a,c)=>a+c.amount,0);
+  const fixedMonthly=monthlyFixedForMonth(mo);
   const weeksInMonth=4.33;
   const fixedWeekly=(state.weeklyFixedCosts||[]).reduce((a,c)=>a+c.amount,0)*weeksInMonth;
   // DPH (reverse charge): база = Bolt дохід + ручні доходи з назвою Uber/Liftago.
@@ -1878,7 +1902,7 @@ function calcRingData(){
   const km=s.boltKmEnabled ? orders.reduce((a,o)=>a+(o.ride_distance||0),0)/1000 : getOdometerKmForMonth(mo);
   const vc=calcVarCosts(km);
   const oneTimeExp=(state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
-  const fixedMonthly=(state.monthlyFixedCosts||[]).reduce((a,c)=>a+c.amount,0);
+  const fixedMonthly=monthlyFixedForMonth(mo);
   const fixedWeekly=(state.weeklyFixedCosts||[]).reduce((a,c)=>a+c.amount,0)*4.33;
   const totalFixed=fixedMonthly+fixedWeekly;
 
