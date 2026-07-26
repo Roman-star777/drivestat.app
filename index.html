@@ -3349,6 +3349,60 @@ DriveStat`;
 // ── RENDER PROFILE ──
 let _profTab = 'main';
 let _pTab = 'settings'; // settings | expenses | income | auto
+let _expPeriod = 'once';  // once | week | month  — для вкладки Витрати
+let _incPeriod = 'once';  // once | week | month  — для вкладки Доходи
+let _expCat = 'other';    // категорія в новій формі витрат
+let _expCatManual = false;
+
+function setExpPeriod(p){ _expPeriod=p; renderProfile(); }
+function setIncPeriod(p){ _incPeriod=p; renderProfile(); }
+function pickExpCat(k){ _expCat=k; _expCatManual=true; renderProfile(); }
+function suggestExpCat(){
+  if(_expCatManual) return;
+  const v=document.getElementById('uni-exp-name')?.value||'';
+  const g=guessCat(v);
+  if(g!==_expCat){ _expCat=g; document.querySelectorAll('[data-ucat]').forEach(b=>{
+    const on=b.dataset.ucat===g; const C=CATS[b.dataset.ucat];
+    b.style.background=on?C.col+'2e':'rgba(255,255,255,.04)';
+    b.style.borderColor=on?C.col+'66':'rgba(255,255,255,.08)';
+    b.style.color=on?C.col:'rgba(255,255,255,.4)';
+  }); }
+}
+
+// ── ЄДИНЕ ДОДАВАННЯ ВИТРАТИ (за обраним періодом) ──
+function addExpenseUni(){
+  const n=document.getElementById('uni-exp-name')?.value.trim();
+  const a=parseInt(document.getElementById('uni-exp-amt')?.value)||0;
+  if(!n||!a){showToast(t('fillAll'));return;}
+  if(_expPeriod==='month'){
+    const d=parseInt(document.getElementById('uni-exp-extra')?.value)||1;
+    (state.monthlyFixedCosts=state.monthlyFixedCosts||[]).push({id:Date.now()+'',name:n,amount:a,dueDay:d,cat:_expCat});
+  } else if(_expPeriod==='week'){
+    (state.weeklyFixedCosts=state.weeklyFixedCosts||[]).push({id:Date.now()+'',name:n,amount:a,cat:_expCat});
+  } else {
+    const d=document.getElementById('uni-exp-date')?.value||today();
+    (state.oneTimeExpenses=state.oneTimeExpenses||[]).push({id:Date.now()+'',name:n,amount:a,date:d,cat:_expCat});
+  }
+  _expCat='other'; _expCatManual=false;
+  save(); showToast(t('added')); renderProfile(); renderDash();
+}
+
+// ── ЄДИНЕ ДОДАВАННЯ ДОХОДУ (за обраним періодом) ──
+function addIncomeUni(){
+  const n=document.getElementById('uni-inc-name')?.value.trim();
+  const a=parseInt(document.getElementById('uni-inc-amt')?.value)||0;
+  if(!n||!a){showToast(t('fillAll'));return;}
+  if(_incPeriod==='month'){
+    const d=parseInt(document.getElementById('uni-inc-extra')?.value)||1;
+    (state.recurringIncome=state.recurringIncome||[]).push({id:Date.now()+'',name:n,amount:a,dueDay:d});
+  } else if(_incPeriod==='week'){
+    (state.weeklyIncome=state.weeklyIncome||[]).push({id:Date.now()+'',name:n,amount:a});
+  } else {
+    const d=document.getElementById('uni-inc-date')?.value||today();
+    (state.oneTimeIncome=state.oneTimeIncome||[]).push({id:Date.now()+'',name:n,amount:a,date:d});
+  }
+  save(); showToast(t('added')); renderProfile(); renderDash();
+}
 
 function renderProfile(){
   const s=state.settings;
@@ -3425,70 +3479,13 @@ function renderProfile(){
     `:''}
 
     ${_pTab==='expenses'?`
-      <div class="sec-panel exp">
-        <div class="sec-panel-hd"><span class="sec-panel-ico">📅</span><span class="sec-panel-ttl">${t('monthlyExp')}</span><span class="sec-panel-sub">вкажи день місяця коли платиш</span></div>
-        ${listSection('',state.monthlyFixedCosts||[],'#FF6B6B','delMonthly',c=>`${t('everyMonth')} · ${t('arrivesOn')} ${c.dueDay||1}-го`,false,'monthlyFixedCosts')}
-        <div class="add-row">
-          <input class="add-inp" id="mc-name" type="text" placeholder="${t('phNameExp')}" oninput="suggestFormCat('mc','mc-name')">
-          <input class="add-inp" id="mc-amt" type="number" inputmode="numeric" placeholder="Kč">
-          <input class="add-inp" id="mc-day" type="number" inputmode="numeric" placeholder="день" style="width:60px;">
-          <button class="add-btn" onclick="addMonthly()">+</button>
-        </div>
-        ${catBtnRow('mc')}
-      </div>
-      <div class="sec-panel wk">
-        <div class="sec-panel-hd"><span class="sec-panel-ico">📆</span><span class="sec-panel-ttl">${t('weeklyExp')}</span><span class="sec-panel-sub">${t('weeklyIncHint')}</span></div>
-        ${listSection('',state.weeklyFixedCosts||[],'#FB923C','delWeekly',()=>`${t('everyWeek')}`,false,'weeklyFixedCosts')}
-        <div class="add-row">
-          <input class="add-inp" id="wkc-name" type="text" placeholder="${t('phWeekly')}" oninput="suggestFormCat('wkc','wkc-name')">
-          <input class="add-inp" id="wkc-amt" type="number" inputmode="numeric" placeholder="Kč">
-          <button class="add-btn" onclick="addWeekly()">+</button>
-        </div>
-        ${catBtnRow('wkc')}
-      </div>
-      <div class="sec-panel one-exp">
-        <div class="sec-panel-hd"><span class="sec-panel-ico">🔴</span><span class="sec-panel-ttl">${t('oneTimeExp')}</span></div>
-        ${listSection('',(state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(todayMonth())),'#FF453A','deleteOneTimeExpense',c=>c.date||'',true,'oneTimeExpenses')}
-        <div class="add-row">
-          <input class="add-inp" id="exp-name" type="text" placeholder="Назва..." oninput="suggestFormCat('exp','exp-name')">
-          <input class="add-inp" id="exp-amt" type="number" inputmode="numeric" placeholder="Kč">
-          <input class="add-inp" id="exp-date" type="date" value="${today()}" style="width:110px;">
-          <button class="add-btn" onclick="addOneTime()">+</button>
-        </div>
-        ${catBtnRow('exp')}
-      </div>
+      ${uniAddForm('exp')}
+      ${uniList('exp')}
     `:''}
 
     ${_pTab==='income'?`
-      <div class="sec-panel fix-inc">
-        <div class="sec-panel-hd"><span class="sec-panel-ico">🔄</span><span class="sec-panel-ttl">${t('recurringInc')}</span><span class="sec-panel-sub">щомісяця автоматично · вкажи день коли приходять гроші</span></div>
-        ${listSection('',state.recurringIncome||[],'#34D399','delRecurring',c=>`щомісяця · надходить ${c.dueDay||1}-го`)}
-        <div class="add-row">
-          <input class="add-inp" id="ri-name" type="text" placeholder="${t('phRecurring')}">
-          <input class="add-inp" id="ri-amt" type="number" inputmode="numeric" placeholder="Kč">
-          <input class="add-inp" id="ri-day" type="number" inputmode="numeric" placeholder="день" style="width:60px;">
-          <button class="add-btn" onclick="addRecurring()">+</button>
-        </div>
-      </div>
-      <div class="sec-panel" style="border-left:3px solid rgba(52,211,153,.35);">
-        <div class="sec-panel-hd"><span class="sec-panel-ico">📆</span><span class="sec-panel-ttl">${t('weeklyInc')}</span><span class="sec-panel-sub">повторюються щотижня</span></div>
-        ${listSection('',state.weeklyIncome||[],'#34D399','delWeeklyIncome',()=>`${t('everyWeek')}`)}
-        <div class="add-row">
-          <input class="add-inp" id="wi-name" type="text" placeholder="${t('phWeeklyInc')}">
-          <input class="add-inp" id="wi-amt" type="number" inputmode="numeric" placeholder="Kč">
-          <button class="add-btn" onclick="addWeeklyIncome()">+</button>
-        </div>
-      </div>
-      <div class="sec-panel one-inc">
-        <div class="sec-panel-hd"><span class="sec-panel-ico">💰</span><span class="sec-panel-ttl">${t('oneTimeInc')}</span></div>
-        ${listSection('',(state.oneTimeIncome||[]).filter(e=>e.date?.startsWith(todayMonth())),'#818CF8','deleteOneTimeIncome',c=>c.date||'',true)}
-        <div class="add-row">
-          <input class="add-inp" id="oi-name" type="text" placeholder="Назва...">
-          <input class="add-inp" id="oi-amt" type="number" inputmode="numeric" placeholder="Kč">
-          <input class="add-inp" id="oi-date" type="date" value="${today()}" style="width:110px;">
-          <button class="add-btn" onclick="addOneTimeIncome()">+</button>
-        </div>
-      </div>
+      ${uniAddForm('inc')}
+      ${uniList('inc')}
     `:''}
 
     ${_pTab==='auto'?`
@@ -3581,6 +3578,88 @@ function saveOdometerBase(){
 function clearOdometerBase(){
   delete state.settings.odometerBase;save();showToast('Базу скинуто');renderProfile();
 }
+
+// ═══════════ ЄДИНА ФОРМА ВИТРАТ/ДОХОДІВ ═══════════
+function periodSeg(kind, cur){
+  // kind: 'exp' | 'inc'
+  const fn = kind==='exp' ? 'setExpPeriod' : 'setIncPeriod';
+  const opts=[['once','Разова','один раз'],['week','Щотижня','кожен тиждень'],['month','Щомісяця','кожен місяць']];
+  return `<div style="display:flex;gap:5px;background:rgba(0,0,0,.25);border-radius:13px;padding:4px;margin-bottom:13px;">
+    ${opts.map(([k,l,s])=>{const on=k===cur;return `<div onclick="${fn}('${k}')" style="flex:1;text-align:center;padding:10px 4px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;line-height:1.25;color:${on?'#00E38A':'rgba(255,255,255,.45)'};background:${on?'rgba(0,227,138,.15)':'none'};box-shadow:${on?'0 0 0 1px rgba(0,227,138,.3) inset':'none'};">${l}<small style="display:block;font-size:8px;font-weight:600;opacity:.6;margin-top:2px;">${s}</small></div>`;}).join('')}
+  </div>`;
+}
+
+function catRowUni(){
+  return `<div style="font-size:9px;letter-spacing:.1em;font-weight:700;color:rgba(255,255,255,.3);margin:2px 0 7px;">КАТЕГОРІЯ · підказана автоматично</div>
+  <div style="display:flex;gap:6px;margin-bottom:13px;">
+    ${CAT_ORDER.map(k=>{const C=CATS[k],on=k===_expCat;return `<button data-ucat="${k}" onclick="pickExpCat('${k}')" style="flex:1;padding:9px 3px;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;background:${on?C.col+'2e':'rgba(255,255,255,.04)'};border:1px solid ${on?C.col+'66':'rgba(255,255,255,.08)'};color:${on?C.col:'rgba(255,255,255,.4)'};">${C.ico} ${catName(k)}</button>`;}).join('')}
+  </div>`;
+}
+
+// форма додавання (єдина)
+function uniAddForm(kind){
+  const isExp = kind==='exp';
+  const per = isExp ? _expPeriod : _incPeriod;
+  const idp = isExp ? 'uni-exp' : 'uni-inc';
+  const addFn = isExp ? 'addExpenseUni()' : 'addIncomeUni()';
+  const namePh = isExp ? 'Назва витрати — напр. Заправка' : 'Назва доходу — напр. Uber';
+  const oninput = isExp ? 'oninput="suggestExpCat()"' : '';
+  // третє поле залежить від періоду
+  let extra='';
+  if(per==='once') extra=`<input class="add-inp" id="${idp}-date" type="date" value="${today()}" style="width:132px;">`;
+  else if(per==='month') extra=`<input class="add-inp" id="${idp}-extra" type="number" inputmode="numeric" placeholder="день міс." style="width:100px;text-align:center;">`;
+  return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:16px;margin-bottom:14px;">
+    <div style="font-size:11px;letter-spacing:.1em;font-weight:800;color:rgba(255,255,255,.4);margin-bottom:13px;">➕ ${isExp?'ДОДАТИ ВИТРАТУ':'ДОДАТИ ДОХІД'}</div>
+    ${periodSeg(kind, per)}
+    <input class="add-inp" id="${idp}-name" type="text" placeholder="${namePh}" ${oninput} style="width:100%;margin-bottom:10px;">
+    <div style="display:flex;gap:9px;margin-bottom:${isExp?'13px':'14px'};">
+      <input class="add-inp" id="${idp}-amt" type="number" inputmode="numeric" placeholder="Kč" style="flex:1;text-align:right;font-weight:700;font-size:16px;">
+      ${extra}
+    </div>
+    ${isExp?catRowUni():''}
+    <button onclick="${addFn}" style="width:100%;padding:14px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00E38A,#01CC74);color:#04140d;font-size:15px;font-weight:800;">${isExp?'Додати витрату':'Додати дохід'}</button>
+  </div>`;
+}
+
+// список за обраним періодом
+function uniList(kind){
+  const isExp=kind==='exp';
+  const per=isExp?_expPeriod:_incPeriod;
+  let arr, delFn, meta, arrName, total, ttl;
+  if(isExp){
+    if(per==='month'){arr=state.monthlyFixedCosts||[];delFn='delMonthly';arrName='monthlyFixedCosts';ttl='ЩОМІСЯЧНІ ВИТРАТИ';meta=c=>`кожне ${c.dueDay||1} число`;}
+    else if(per==='week'){arr=state.weeklyFixedCosts||[];delFn='delWeekly';arrName='weeklyFixedCosts';ttl='ЩОТИЖНЕВІ ВИТРАТИ';meta=()=>'щотижня';}
+    else {arr=(state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(todayMonth()));delFn='deleteOneTimeExpense';arrName='oneTimeExpenses';ttl='РАЗОВІ ВИТРАТИ · '+monthName();meta=c=>fmtDate(c.date);}
+  } else {
+    if(per==='month'){arr=state.recurringIncome||[];delFn='delRecurring';arrName=null;ttl='ЩОМІСЯЧНІ ДОХОДИ';meta=c=>`кожне ${c.dueDay||1} число`;}
+    else if(per==='week'){arr=state.weeklyIncome||[];delFn='delWeeklyIncome';arrName=null;ttl='ЩОТИЖНЕВІ ДОХОДИ';meta=()=>'щотижня';}
+    else {arr=(state.oneTimeIncome||[]).filter(e=>e.date?.startsWith(todayMonth()));delFn='deleteOneTimeIncome';arrName=null;ttl='РАЗОВІ ДОХОДИ · '+monthName();meta=c=>fmtDate(c.date);}
+  }
+  total=arr.reduce((a,c)=>a+(c.amount||0),0);
+  const col=isExp?'#FF6B6B':'#34D399', sign=isExp?'−':'+';
+  const rows = arr.length? arr.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(c=>{
+    const k=isExp?catOf(c):null, C=k?CATS[k]:null;
+    return `<div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+      ${isExp?`<button onclick="openCatPick('${arrName}','${c.id}')" style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:${C.col}26;border:none;cursor:pointer;">${C.ico}</button>`:`<div style="width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:rgba(52,211,153,.15);">💰</div>`}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name}</div>
+        <div style="font-size:9.5px;color:rgba(255,255,255,.3);margin-top:2px;">${meta(c)}${isExp?' · '+catName(k):''}</div>
+      </div>
+      <span style="font-size:14px;font-weight:700;color:${col};font-variant-numeric:tabular-nums;">${sign}${fmt(c.amount)}</span>
+      <button onclick="${delFn}('${c.id}')" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:15px;cursor:pointer;padding:4px;margin-left:4px;">✕</button>
+    </div>`;
+  }).join('') : `<div style="text-align:center;padding:22px;color:rgba(255,255,255,.25);font-size:12px;">Порожньо — додай першу ${isExp?'витрату':'дохід'} вище</div>`;
+  return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:14px 16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${arr.length?'2px':'0'};">
+      <span style="font-size:11px;letter-spacing:.1em;font-weight:800;color:rgba(255,255,255,.4);">${ttl}</span>
+      ${arr.length?`<span style="font-size:13px;font-weight:800;color:${col};">${sign}${fmt(total)} Kč</span>`:''}
+    </div>
+    ${rows}
+  </div>`;
+}
+
+function monthName(){ return new Date().toLocaleDateString('uk-UA',{month:'long'}).toUpperCase(); }
+function fmtDate(d){ if(!d)return''; const p=d.split('-'); return p.length===3?`${p[2]}.${p[1]}`:d; }
 
 // ═══════════ КАТЕГОРІЇ ВИТРАТ ═══════════
 const CATS={
