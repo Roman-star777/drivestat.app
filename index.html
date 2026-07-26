@@ -2576,10 +2576,15 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
       hasExpense:exp>0||paid>0});
   }
 
-  // ── Future expenses (upcoming unpaid bills) on their due day ──
+  // ── Future expenses (unpaid monthly bills) on their due day — для chartMo ──
   const expensesOnDay={};
-  calcUpcoming().filter(u=>!isPaid(u.dueDay)).forEach(u=>{
-    if(u.dueDay)expensesOnDay[u.dueDay]=(expensesOnDay[u.dueDay]||0)+u.total;
+  (state.monthlyFixedCosts||[]).forEach(c=>{
+    if(!monthlyCountsInMonth(c, chartMo)) return; // варіант А для того місяця що на графіку
+    const d=c.dueDay||1;
+    // якщо цей рахунок уже оплачено цього місяця — не малюємо як майбутню витрату
+    const alreadyPaid=(state.paidExpenses||[]).some(p=>p.month===chartMo && p.dueDay===d);
+    if(alreadyPaid) return;
+    expensesOnDay[d]=(expensesOnDay[d]||0)+c.amount;
   });
 
   // ── Future income: recurring income on their dueDay ──
