@@ -2127,10 +2127,6 @@ function renderDash(){
             <div style="font-size:8px;color:${_netRingNet?'rgba(1,204,116,.6)':'rgba(255,255,255,.3)'};margin-top:1px;">${lbl} ${_netRingNet?'⇄':''}</div>
           </div>`;
           })()}
-          <button onclick="toggleCoverage()" style="background:none;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:3px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.05);">
-            <span style="font-size:8px;color:rgba(255,255,255,.35);">${t('coverage')}</span>
-            <span style="font-size:10px;color:rgba(255,255,255,.3);">${_coverageExpanded?'⌃':'⌄'}</span>
-          </button>
         </div>
 
         <div style="width:1px;background:rgba(255,255,255,.1);height:60px;align-self:center;"></div>
@@ -2139,7 +2135,8 @@ function renderDash(){
         <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;">
           ${(()=>{
             const projVal = _projRingNet ? (rd.grossProjected - rd.totalCostsForPct) : rd.grossProjected;
-            const projC = _projRingNet ? (projVal>=0?'#01CC74':'#FF6B6B') : projCol;
+            const projC = projCol; // кільце завжди фіолетове (фірмовий колір потенціалу)
+            const projNumCol = _projRingNet ? (projVal>=0?'#01CC74':'#FF6B6B') : projCol; // число: зелене/червоне у режимі чистого
             const projPctShow = _projRingNet
               ? (rd.totalCostsForPct>0 ? Math.min(200,Math.max(0,(projVal/rd.totalCostsForPct)*100)) : (projVal>=0?100:0))
               : Math.min(100,projPct);
@@ -2154,7 +2151,7 @@ function renderDash(){
             </div>
           </div>
           <div onclick="toggleProjRing()" style="text-align:center;cursor:pointer;">
-            <div style="font-size:12px;font-weight:700;color:${projC};font-variant-numeric:tabular-nums;letter-spacing:-.02em;">${projVal>=0?'+':''}${fmt(projVal)}</div>
+            <div style="font-size:12px;font-weight:700;color:${projNumCol};font-variant-numeric:tabular-nums;letter-spacing:-.02em;">${projVal>=0?'+':''}${fmt(projVal)}</div>
             <div style="font-size:8px;color:${_projRingNet?'rgba(1,204,116,.6)':'rgba(255,255,255,.3)'};margin-top:1px;">${lbl} ${_projRingNet?'⇄':''}</div>
           </div>`;
           })()}
@@ -2163,26 +2160,7 @@ function renderDash(){
       </div>`;
     })()}
 
-    <!-- INSIGHT -->
-    ${_coverageExpanded?`
-    <div style="background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 13px;margin-bottom:10px;">
-      <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.1em;margin-bottom:8px;">${t('coverageTitle')}</div>
-      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);">
-        <span style="font-size:10px;color:rgba(255,255,255,.4);">${t('paidBills')}</span>
-        <span style="font-size:10px;font-weight:700;color:${rd.paidThisMonth>0?'#01CC74':'rgba(255,255,255,.3)'};font-variant-numeric:tabular-nums;">${fmt(rd.paidThisMonth)} Kč</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);">
-        <span style="font-size:10px;color:rgba(255,255,255,.4);">${t('totalFixedLbl')}</span>
-        <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums;">${fmt(rd.totalFixed)} Kč</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:5px 0;">
-        <span style="font-size:10px;color:rgba(255,255,255,.4);">${t('covered')}</span>
-        <span style="font-size:10px;font-weight:700;color:${rd.pctCoverage>=100?'#01CC74':'#FF4545'};font-variant-numeric:tabular-nums;">${Math.round(rd.pctCoverage)}%</span>
-      </div>
-      <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:6px;">
-        <div style="height:100%;width:${rd.pctCoverage.toFixed(0)}%;background:${rd.pctCoverage>=100?'#01CC74':'#FF4545'};border-radius:2px;transition:width .3s;"></div>
-      </div>
-    </div>`:''}
+    <!-- (покриття прибрано) -->
     <div style="background:rgba(0,0,0,.25);backdrop-filter:blur(8px);border-radius:12px;padding:9px 13px;margin-bottom:10px;font-size:12px;color:rgba(255,255,255,.5);line-height:1.4;">
       <span>${insight}</span>
     </div>
