@@ -2408,8 +2408,12 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
         return `
         <div style="background:#141620;border:1px solid rgba(255,255,255,.07);border-radius:14px;margin-bottom:7px;overflow:hidden;">
           <!-- Day header row - clickable -->
-          <div onclick="toggleDayExpand('${d}')" style="display:flex;align-items:center;gap:9px;padding:10px 13px;cursor:pointer;user-select:none;">
-            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.55);width:38px;flex-shrink:0;">${d.slice(5).replace('-','.')}</div>
+          <div onclick="toggleDayExpand('${d}')" style="display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer;user-select:none;">
+            <div style="width:46px;flex-shrink:0;text-align:center;">
+              <div style="font-size:26px;font-weight:800;line-height:1;color:${col};letter-spacing:-.02em;">${dayNum(d)}</div>
+              <div style="font-size:9px;font-weight:700;color:${col};opacity:.85;letter-spacing:.04em;margin-top:2px;">${dayWD(d)}</div>
+              <div style="font-size:8px;font-weight:600;color:rgba(255,255,255,.3);margin-top:1px;">${dayMO(d)}</div>
+            </div>
             <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
               <div style="height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;display:flex;gap:1px;">
                 ${day.bolt>0?`<div style="width:${boltW.toFixed(0)}%;height:100%;background:#01CC74;border-radius:3px 0 0 3px;"></div>`:''}
@@ -3287,6 +3291,13 @@ function renderSwipeCards(m,td,w){
   </div>`;
 }
 let _expandedDay=null;
+// день тижня (СБ) і місяць (Лип) для дати YYYY-MM-DD
+const _WD=['НД','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
+const _MO=['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
+function dayWD(ds){ const p=ds.split('-'); const dt=new Date(+p[0],+p[1]-1,+p[2]); return _WD[dt.getDay()]; }
+function dayMO(ds){ return _MO[(+ds.split('-')[1])-1]; }
+function dayNum(ds){ return +ds.split('-')[2]; }
+
 function toggleDayExpand(d){
   _expandedDay=(_expandedDay===d)?null:d;
   renderReports();
