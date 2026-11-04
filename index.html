@@ -1931,12 +1931,22 @@ function calcRingData(){
     .reduce((s,p)=>s+p.amount,0);
   const pctCoverage=totalFixed>0 ? Math.min(100,(paidThisMonth/totalFixed)*100) : 0;
 
-  // PROJECTED: all planned income this month
+  // PROJECTED: all planned income this month + forecasted Bolt income for remaining days
   const recurringAll=(state.recurringIncome||[]).reduce((a,e)=>a+e.amount,0);
   const oneTimeAll=(state.oneTimeIncome||[])
     .filter(e=>e.date?.startsWith(mo))
     .reduce((a,e)=>a+e.amount,0);
-  const grossProjected=boltGross+recurringAll+oneTimeAll+rollover;
+  const daysInMo=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const daysLeftMo=Math.max(0,daysInMo-dayNow);
+  const fcMode=s.forecastMode||'avg';
+  let boltForecastRemaining=0;
+  if(fcMode==='avg'){
+    const avgDaily=dayNow>0 ? boltGross/dayNow : 0;
+    boltForecastRemaining=avgDaily*daysLeftMo;
+  } else if(fcMode==='goal'){
+    boltForecastRemaining=(s.dailyGoal||0)*daysLeftMo;
+  }
+  const grossProjected=boltGross+boltForecastRemaining+recurringAll+oneTimeAll+rollover;
   const pctProjected=totalCostsForPct>0 ? Math.min(200,(grossProjected/totalCostsForPct)*100) : 0;
 
   // MONEY ON HAND = earned - variable costs - one-time expenses - already PAID fixed bills
