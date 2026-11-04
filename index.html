@@ -3570,7 +3570,6 @@ function renderProfileMain(){
       </div>
       <div class="sec-lbl">${t('generalLabel')}</div>
       <div class="st-group" style="margin-bottom:14px;">
-        <div class="st-row"><div><div class="st-lbl">${t('dailyGoal')}</div></div><input class="st-inp" id="st-goal" type="number" inputmode="numeric" value="${s.dailyGoal}" oninput="updGoalBreakdown(this.value)"></div>
         <div class="st-row">
           <div style="flex:1;"><div class="st-lbl">${t('forecastLabel')}</div></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -3583,7 +3582,6 @@ function renderProfileMain(){
         </div>
         ${s.rolloverEnabled&&(state.rolloverBalance||0)>0?`<div class="st-row"><span class="st-lbl">${t('rolloverFrom')}</span><span style="font-size:13px;font-weight:700;color:#34D399;">+${fmt(state.rolloverBalance)} Kč</span></div>`:''}
       </div>
-      <div id="goal-bd">${goalBreakdownHTML(s.dailyGoal)}</div>
       <button class="btn-logout" onclick="logout()">${t('logout')}</button>
     `:''}
 
@@ -4272,14 +4270,14 @@ function renderPlan(){
     const M=planModel(); _planM=M;
     const minR=planMinRate(M);
     const maxR=Math.max(3000,Math.ceil(M.goal*1.5/100)*100,Math.ceil(M.avgNet*2/100)*100,Math.ceil(minR*1.3/100)*100);
-    if(_planRate===null) _planRate=M.avgNet>0?Math.round(M.avgNet/50)*50:(M.goal||1000);
+    if(_planRate===null) _planRate=M.goal>0?M.goal:(M.avgNet>0?Math.round(M.avgNet/50)*50:1000);
     _planRate=Math.min(maxR,Math.max(0,_planRate));
-    const presets=[['Мінімум',minR],['Середній',Math.round(M.avgNet)],['Ціль',M.goal]].filter(p=>p[1]>=0&&p[1]<=maxR);
+    const presets=[['Мінімум',minR],['Середній',Math.round(M.avgNet)]].filter(p=>p[1]>=0&&p[1]<=maxR);
     const monthly=M.dueItems.slice().sort((a,b)=>a.d-b.d);
     document.getElementById('tab-plan').innerHTML=`
       <div class="ds-sec" style="margin-top:6px"><h3>План місяця</h3><span>${monthNameUk()}</span></div>
       <div class="ds-card ds-pad ds-slider">
-        <div class="lbl">Скільки заробляю чистими на день</div>
+        <div class="lbl">Денна ціль · чисті на день</div>
         <div class="row"><b id="pl-rate"></b><span id="pl-note"></span></div>
         <div class="g">≈ <b id="pl-g"></b> Kč брутто на день</div>
         <input class="ds-rng" id="pl-rng" type="range" min="0" max="${maxR}" step="50" value="${_planRate}" oninput="planDraw(+this.value)">
@@ -4302,9 +4300,12 @@ function renderPlan(){
     console.error('renderPlan error:',err);
   }
 }
+let _goalT=null;
 function planDraw(r){
   const M=_planM; if(!M) return;
   _planRate=r;
+  const gv2=Math.round(r);
+  if(gv2>0&&state.settings.dailyGoal!==gv2){ state.settings.dailyGoal=gv2; M.goal=gv2; _gpC=null; clearTimeout(_goalT); _goalT=setTimeout(()=>{save();},500); }
   const W=400,H=230,L=44,R=12,T=14,B=26;
   const days=[]; for(let d=M.dayNow;d<=M.dim;d++) days.push(d);
   const span=Math.max(1,M.dim-M.dayNow);
@@ -4335,7 +4336,7 @@ function planDraw(r){
   $('pl-l1').textContent=l1; $('pl-r1').textContent=r1; $('pl-r1').style.color=c1;
   $('pl-r2').textContent=(end<0?'−':'+')+fmt(end)+' Kč'; $('pl-r2').style.color=end<0?'var(--coral)':'var(--mint)';
   $('pl-rate').textContent=fmt(r)+' Kč'; $('pl-g').textContent=fmt(toGross(r));
-  $('pl-note').textContent=Math.abs(r-M.avgNet)<26&&M.avgNet>0?'твій середній темп':(r===M.goal&&M.goal>0?'твоя денна ціль':(r<M.avgNet?'повільніше за середнє':'швидше за середнє'));
+  $('pl-note').textContent=Math.abs(r-M.avgNet)<26&&M.avgNet>0?'твій середній темп':(r===M.goal&&M.goal>0?'це твоя денна ціль':(r<M.avgNet?'повільніше за середнє':'швидше за середнє'));
   const rng=$('pl-rng'); if(rng&&+rng.value!==r) rng.value=r;
 }
 
