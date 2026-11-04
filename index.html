@@ -4108,7 +4108,7 @@ function grossParams(){
   let v=.05; // частка пального і зносу від виплати; якщо є дані місяця — рахуємо з них
   try{ const m=calcMonth(); if(m.boltGross>1000) v=Math.min(.3,Math.max(0,m.vc.total/m.boltGross)); }catch(e){}
   const k=c<1 ? c/(1-c)*dr : 0;
-  const K=1/(Math.max(.2,1-k-v)*(1-c));
+  const K=1/Math.max(.2,1-k-v); // комісія платформи вже знята у виплаті Bolt — у брутто її не додаємо
   const out={c,dr,v,k,K};
   _gpC={t:Date.now(),v:out};
   return out;
@@ -4116,8 +4116,8 @@ function grossParams(){
 function toGross(net){ return net*grossParams().K; }
 function gv(net){ return _grossMode ? toGross(net) : net; }
 function grossBreakdown(net){
-  const p=grossParams(); const B=net*p.K, com=B*p.c, dph=com*p.dr, vc=(B-com)*p.v;
-  return {B,com,dph,vc,net:B-com-dph-vc,p};
+  const p=grossParams(); const B=net*p.K, dph=B*p.k, vc=B*p.v;
+  return {B,com:0,dph,vc,net:B-dph-vc,p};
 }
 function monthNameUk(){ return new Date().toLocaleDateString('uk-UA',{month:'long'}); }
 function dsSign(n){ return (n<0?'−':'+')+fmt(n); }
@@ -4138,7 +4138,7 @@ function goalCardHTML(m){
   const ln=done
     ?`Витрати покриті на <b>${Math.round(cov)}%</b>. Все понад норму — твій чистий прибуток.`
     :`Це <b>${fmt(gv(remaining/dLeft))} Kč на день</b> протягом ${dLeft} дн. Витрати місяця покриті на <b>${Math.round(cov)}%</b>.`;
-  const note=G?`<div class="ds-gnote ds-inset"><b>Брутто</b> — виручка за поїздки до комісії платформи (${Math.round(grossParams().c*100)}%), ПДВ і пального. Саме стільки треба набрати, щоб лишилась ця сума чистими.</div>`:'';
+  const note=G?`<div class="ds-gnote ds-inset"><b>Брутто</b> — сума виплат Bolt (як вона показується в додатку), з якої ще піде ПДВ і пальне. Саме стільки треба набрати, щоб лишилась ця сума чистими.</div>`:'';
   return `<div class="ds-card ds-goal">
     <div class="q">${lbl}</div>
     <div class="ds-mode"><button class="${G?'':'on'}" onclick="setGrossMode(false)">Чисті</button><button class="${G?'on':''}" onclick="setGrossMode(true)">Брутто</button></div>
@@ -4401,9 +4401,8 @@ function goalBreakdownHTML(net){
     <div style="font-size:13px;font-weight:700;color:var(--ds-t2)">Щоб залишилось <b style="color:var(--gold)">${fmt(net)} Kč</b> чистими, треба набрати</div>
     <div class="ds-big2" style="color:var(--mint)">${fmt(b.B)}<small>Kč брутто</small></div>
     <div class="ds-wf ds-inset" style="padding:4px 14px;margin-top:12px">
-      <div class="w"><i style="background:#34e0a9"></i><div>Брутто<small>виручка за поїздки</small></div><em>${fmt(b.B)}</em></div>
-      <div class="w"><i style="background:#ff9b45"></i><div>Комісія платформи ${Math.round(p.c*100)}%<small>рахується від брутто</small></div><em style="color:var(--coral)">−${fmt(b.com)}</em></div>
-      ${p.dr>0?`<div class="w"><i style="background:#a98bff"></i><div>ПДВ ${Math.round(p.dr*100)}%<small>reverse charge, від комісії</small></div><em style="color:var(--coral)">−${fmt(b.dph)}</em></div>`:''}
+      <div class="w"><i style="background:#34e0a9"></i><div>Брутто<small>виплата Bolt</small></div><em>${fmt(b.B)}</em></div>
+      ${p.dr>0?`<div class="w"><i style="background:#a98bff"></i><div>ПДВ ${Math.round(p.dr*100)}%<small>reverse charge</small></div><em style="color:var(--coral)">−${fmt(b.dph)}</em></div>`:''}
       <div class="w"><i style="background:#f472b6"></i><div>Пальне і знос<small>≈ ${(p.v*100).toFixed(1)}% від виплати</small></div><em style="color:var(--coral)">−${fmt(b.vc)}</em></div>
       <div class="w end"><i style="background:#ffc857"></i><div>Чисті тобі</div><em style="color:var(--gold)">${fmt(b.net)}</em></div>
     </div>
