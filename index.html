@@ -3512,8 +3512,8 @@ DriveStat`;
 // ── RENDER PROFILE ──
 let _profTab = 'main';
 let _pTab = 'settings'; // settings | expenses | income | auto
-let _expPeriod = 'once';  // once | week | month  — для вкладки Витрати
-let _incPeriod = 'once';  // once | week | month  — для вкладки Доходи
+let _expPeriod = 'month';  // once | week | month  — для вкладки Витрати
+let _incPeriod = 'month';  // once | week | month  — для вкладки Доходи
 let _expCat = 'other';    // категорія в новій формі витрат
 let _expCatManual = false;
 
@@ -3796,9 +3796,9 @@ function uniList(kind){
     else if(per==='week'){arr=state.weeklyFixedCosts||[];delFn='delWeekly';arrName='weeklyFixedCosts';ttl='ЩОТИЖНЕВІ ВИТРАТИ';meta=()=>'щотижня';}
     else {arr=(state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(todayMonth()));delFn='deleteOneTimeExpense';arrName='oneTimeExpenses';ttl='РАЗОВІ ВИТРАТИ · '+monthName();meta=c=>fmtDate(c.date);}
   } else {
-    if(per==='month'){arr=state.recurringIncome||[];delFn='delRecurring';arrName=null;ttl='ЩОМІСЯЧНІ ДОХОДИ';meta=c=>`кожне ${c.dueDay||1} число`;}
-    else if(per==='week'){arr=state.weeklyIncome||[];delFn='delWeeklyIncome';arrName=null;ttl='ЩОТИЖНЕВІ ДОХОДИ';meta=()=>'щотижня';}
-    else {arr=(state.oneTimeIncome||[]).filter(e=>e.date?.startsWith(todayMonth()));delFn='deleteOneTimeIncome';arrName=null;ttl='РАЗОВІ ДОХОДИ · '+monthName();meta=c=>fmtDate(c.date);}
+    if(per==='month'){arr=state.recurringIncome||[];delFn='delRecurring';arrName='recurringIncome';ttl='ЩОМІСЯЧНІ ДОХОДИ';meta=c=>`кожне ${c.dueDay||1} число`;}
+    else if(per==='week'){arr=state.weeklyIncome||[];delFn='delWeeklyIncome';arrName='weeklyIncome';ttl='ЩОТИЖНЕВІ ДОХОДИ';meta=()=>'щотижня';}
+    else {arr=(state.oneTimeIncome||[]).filter(e=>e.date?.startsWith(todayMonth()));delFn='deleteOneTimeIncome';arrName='oneTimeIncome';ttl='РАЗОВІ ДОХОДИ · '+monthName();meta=c=>fmtDate(c.date);}
   }
   total=arr.reduce((a,c)=>a+(c.amount||0),0);
   const col=isExp?'#FF6B6B':'#34D399', sign=isExp?'−':'+';
@@ -3811,6 +3811,7 @@ function uniList(kind){
         <div style="font-size:9.5px;color:rgba(255,255,255,.3);margin-top:2px;">${meta(c)}${isExp?' · '+catName(k):''}</div>
       </div>
       <span style="font-size:14px;font-weight:700;color:${col};font-variant-numeric:tabular-nums;">${sign}${fmt(c.amount)}</span>
+      <button onclick="editUniItem('${arrName}','${c.id}')" aria-label="Редагувати" style="background:none;border:none;color:rgba(255,255,255,.45);font-size:15px;cursor:pointer;padding:4px;margin-left:2px;">✎</button>
       <button onclick="${delFn}('${c.id}')" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:15px;cursor:pointer;padding:4px;margin-left:4px;">✕</button>
     </div>`;
   }).join('') : `<div style="text-align:center;padding:22px;color:rgba(255,255,255,.25);font-size:12px;">Порожньо — додай першу ${isExp?'витрату':'дохід'} вище</div>`;
@@ -3823,6 +3824,19 @@ function uniList(kind){
   </div>`;
 }
 
+function editUniItem(arrName,id){
+  const item=(state[arrName]||[]).find(x=>String(x.id)===String(id));
+  if(!item) return;
+  const name=prompt('Назва',item.name); if(name===null) return;
+  const amt=prompt('Сума, Kč',item.amount); if(amt===null) return;
+  const a=parseFloat(String(amt).replace(',','.').replace(/\s/g,''));
+  if(!isNaN(a)&&a>=0) item.amount=a;
+  if(name.trim()) item.name=name.trim();
+  if(item.dueDay!==undefined){
+    const d=prompt('День місяця (1-31)',item.dueDay); if(d!==null){const n=parseInt(d); if(n>=1&&n<=31) item.dueDay=n;}
+  }
+  save(); renderProfile(); renderDash();
+}
 function monthName(){ return new Date().toLocaleDateString('uk-UA',{month:'long'}).toUpperCase(); }
 function fmtDate(d){ if(!d)return''; const p=d.split('-'); return p.length===3?`${p[2]}.${p[1]}`:d; }
 
@@ -4369,6 +4383,7 @@ function renderMoney(){
       <div class="ds-seg"><button class="${isExp?'on':''}" onclick="_moneyTab='exp';renderMoney()">Витрати</button><button class="${isExp?'':'on'}" onclick="_moneyTab='inc';renderMoney()">Доходи</button></div>
       <div class="ds-sum3">${sums.map(x=>`<div class="ds-inset"><small>${x[0]}</small><b style="${x[2]?'color:'+x[2]:''}">${x[1]}</b></div>`).join('')}</div>
       <div style="height:14px"></div>
+      ${_moneyAdd?'':periodSeg(isExp?'exp':'inc',isExp?_expPeriod:_incPeriod)}
       ${_moneyAdd?uniAddForm(isExp?'exp':'inc'):''}
       ${uniList(isExp?'exp':'inc')}
       <button class="ds-fab" onclick="_moneyAdd=!_moneyAdd;renderMoney()" aria-label="Додати">${_moneyAdd?'×':'+'}</button>`;
