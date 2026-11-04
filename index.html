@@ -678,6 +678,9 @@ input[type=range].ds-rng::-moz-range-thumb{width:30px;height:30px;border-radius:
 .ds-fab{position:fixed;right:max(18px,calc(50% - 197px));bottom:104px;width:58px;height:58px;border-radius:20px;border:0;font-size:30px;font-weight:700;color:#04261b;cursor:pointer;z-index:40;
   background:linear-gradient(180deg,#8ff5d0,#1fbd8c);box-shadow:0 5px 0 #0e7a58,0 16px 28px -6px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.6)}
 .h-sync.save{color:var(--gold);border-color:rgba(255,200,87,.35)}
+.ds-btn{border:none;cursor:pointer;font:800 14px/1 'Manrope','Inter',sans-serif;color:#04140d;padding:13px 18px;border-radius:14px;background:linear-gradient(180deg,#5ff0b0,#1fc98a);box-shadow:0 5px 0 #0f7f57,0 10px 18px rgba(0,0,0,.35)}
+.ds-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #0f7f57}
+.ds-btn.ghost{background:linear-gradient(180deg,var(--ds-r2),var(--ds-r1));color:var(--ds-t2);box-shadow:var(--ds-shadow);border:1px solid var(--ds-line)}
 </style>
 </head>
 <body>
@@ -816,6 +819,7 @@ let state = {
   oneTimeIncome: [],
   oneTimeExpenses: [],
   odometerLog: [],
+  shiftLog: {},
   onboardingDone: false,
   settings:{
     fuelEnabled: false,
@@ -853,10 +857,8 @@ function getWeekRange(){
   const sun=new Date(mon); sun.setDate(mon.getDate()+6);
   return [mon.toISOString().slice(0,10), sun.toISOString().slice(0,10)];
 }
-function toPragueDate(ts){
-  const d=new Date((ts+7200)*1000);
-  return d.toISOString().slice(0,10);
-}
+const _pragueFmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Prague',year:'numeric',month:'2-digit',day:'2-digit'});
+function toPragueDate(ts){ return _pragueFmt.format(new Date(ts*1000)); }
 function daysLeftInMonth(){
   const n=new Date(); const last=new Date(n.getFullYear(),n.getMonth()+1,0).getDate();
   return Math.max(1, last-n.getDate()+1);
@@ -1875,7 +1877,7 @@ function calcMonth(mo){
   const orders=ordersForMonth(mo);
   const boltGross=orders.reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
   const boltKm=orders.reduce((a,o)=>a+(o.ride_distance||0),0)/1000;
-  const km=s.boltKmEnabled ? boltKm : getOdometerKmForMonth(mo);
+  const km=kmAdj(s.boltKmEnabled ? boltKm : getOdometerKmForMonth(mo), mo+'-01', mo+'-31');
   const vc=calcVarCosts(km);
 
   const recurringInc=(state.recurringIncome||[]).reduce((a,e)=>a+e.amount,0);
@@ -1948,7 +1950,7 @@ function calcWeek(){
   const boltGross=orders.reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
   const boltKm=orders.reduce((a,o)=>a+(o.ride_distance||0),0)/1000;
   const s=state.settings;
-  const km=s.boltKmEnabled ? boltKm : getOdometerKmForPeriod(from,to);
+  const km=kmAdj(s.boltKmEnabled ? boltKm : getOdometerKmForPeriod(from,to), from, to);
   const vc=calcVarCosts(km);
   const oneTimeInc=(state.oneTimeIncome||[]).filter(e=>e.date>=from&&e.date<=to).reduce((a,e)=>a+e.amount,0);
   const oneTimeExp=(state.oneTimeExpenses||[]).filter(e=>e.date>=from&&e.date<=to&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
@@ -1966,7 +1968,7 @@ function calcToday(){
   const orders=ordersForDay(d);
   const boltGross=orders.reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
   const boltKm=orders.reduce((a,o)=>a+(o.ride_distance||0),0)/1000;
-  const km=s.boltKmEnabled ? boltKm : getOdometerKmForDay(d);
+  const km=kmAdj(s.boltKmEnabled ? boltKm : getOdometerKmForDay(d), d, d);
   const vc=calcVarCosts(km);
   // Exclude "Корекція балансу" from daily goal — only count real income
   const oneTimeInc=(state.oneTimeIncome||[]).filter(e=>e.date===d&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
@@ -2104,7 +2106,7 @@ function calcRingData(){
   const now=new Date(); const dayNow=now.getDate();
   const orders=ordersForMonth(mo);
   const boltGross=orders.reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
-  const km=s.boltKmEnabled ? orders.reduce((a,o)=>a+(o.ride_distance||0),0)/1000 : getOdometerKmForMonth(mo);
+  const km=kmAdj(s.boltKmEnabled ? orders.reduce((a,o)=>a+(o.ride_distance||0),0)/1000 : getOdometerKmForMonth(mo), mo+'-01', mo+'-31');
   const vc=calcVarCosts(km);
   const oneTimeExp=(state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
   const fixedMonthly=monthlyFixedForMonth(mo);
@@ -2282,6 +2284,7 @@ function renderDash(){
     </div>
 
     ${todayCardHTML(td)}
+    ${shiftCardHTML()}
     ${nextPayCardHTML()}
 
     <!-- SWIPE KEY CARDS -->
@@ -2497,7 +2500,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
       days.map(d=>{
         const day=byDay[d];
         const total=day.bolt+day.other;
-        const dayKm=state.settings.boltKmEnabled ? day.km : getOdometerKmForDay(d);
+        const dayKm=kmAdj(state.settings.boltKmEnabled ? day.km : getOdometerKmForDay(d), d, d);
         const vc2=calcVarCosts(dayKm);
         const corr=day.correction||0;
         const _dphDay=dphForDay(d);
@@ -2685,7 +2688,7 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
     const ds=`${chartMo}-${String(d).padStart(2,'0')}`;
     const bolt=boltByDay[ds]||{earnings:0,km:0};
     const useOdometer=state.settings?.boltKmEnabled===false;
-    const kmForDay=useOdometer?getOdometerKmForDay(ds):bolt.km;
+    const kmForDay=kmAdj(useOdometer?getOdometerKmForDay(ds):bolt.km, ds, ds);
     const vc=calcVarCosts(kmForDay);
     const inc=incByDate[ds]||0;
     const exp=expByDate[ds]||0;
@@ -3202,7 +3205,7 @@ function calcWeekByOffset(offset){
   const boltGross=orders.reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
   const boltKm=orders.reduce((a,o)=>a+(o.ride_distance||0),0)/1000;
   const s=state.settings;
-  const km=s.boltKmEnabled ? boltKm : getOdometerKmForPeriod(from,to);
+  const km=kmAdj(s.boltKmEnabled ? boltKm : getOdometerKmForPeriod(from,to), from, to);
   const vc=calcVarCosts(km);
   const oneTimeInc=(state.oneTimeIncome||[]).filter(e=>e.date>=from&&e.date<=to&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
   const oneTimeExp=(state.oneTimeExpenses||[]).filter(e=>e.date>=from&&e.date<=to&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
@@ -4106,7 +4109,7 @@ function grossParams(){
   const c=Math.min(.6,Math.max(0,(s.boltCommission||25)/100));
   const dr=s.dphEnabled?((s.dphRate||21)/100):0;
   let v=.05; // частка пального і зносу від виплати; якщо є дані місяця — рахуємо з них
-  try{ const m=calcMonth(); if(m.boltGross>1000) v=Math.min(.3,Math.max(0,m.vc.total/m.boltGross)); }catch(e){}
+  try{ const E=calcEfficiency(30); if(E.days>=2&&E.earned>500) v=Math.min(.4,Math.max(0,E.v)); else { const m=calcMonth(); if(m.boltGross>1000) v=Math.min(.3,Math.max(0,m.vc.total/m.boltGross)); } }catch(e){}
   const k=c<1 ? c/(1-c)*dr : 0;
   const K=1/Math.max(.2,1-k-v); // комісія платформи вже знята у виплаті Bolt — у брутто її не додаємо
   const out={c,dr,v,k,K};
@@ -4315,6 +4318,8 @@ function renderPlan(){
       <div class="ds-card ds-chart"><svg id="pl-chart" viewBox="0 0 400 230"></svg>
         <div class="ds-res"><div class="ds-inset"><small id="pl-l1">Після платежу</small><b id="pl-r1">—</b></div><div class="ds-inset"><small>Кінець місяця</small><b id="pl-r2">—</b></div></div>
       </div>
+      ${kmPlanHTML()}
+      ${effCardHTML()}
       <div class="ds-sec"><h3>Платежі місяця</h3><span>${monthly.filter(x=>!x.paid).length} з ${monthly.length} попереду</span></div>
       <div class="ds-card">${monthly.length?monthly.map(x=>{
         const k=catOf(x.c), left=x.d-M.dayNow;
@@ -4410,6 +4415,146 @@ function goalBreakdownHTML(net){
   </div>`;
 }
 function updGoalBreakdown(v){ const el=document.getElementById('goal-bd'); if(el) el.innerHTML=goalBreakdownHTML(v); }
+
+// ═══════════ ЗМІНИ: реальні км / години / заробіток → Kč на км і на годину ═══════════
+let _shiftOpen=false, _shiftDate=null, _kmPlan=(()=>{try{return JSON.parse(localStorage.getItem('ds_kmplan'))||{}}catch(e){return {}}})();
+function shiftDay(d){ return (state.shiftLog||{})[d]||null; }
+function srcKmDay(d){
+  return state.settings.boltKmEnabled
+    ? ordersForDay(d).reduce((a,o)=>a+(o.ride_distance||0),0)/1000
+    : getOdometerKmForDay(d);
+}
+// замінює км з джерела (Bolt/одометр) на реально записані за днями зміни
+function kmAdj(base,from,to){
+  const log=state.shiftLog||{}; let b=base;
+  for(const d in log){ if(d>=from&&d<=to&&log[d].km>0) b+=log[d].km-srcKmDay(d); }
+  return Math.max(0,b);
+}
+function dayEarned(d){
+  const L=shiftDay(d);
+  if(L&&L.earned>0) return L.earned;
+  const bolt=ordersForDay(d).reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
+  const man=(state.oneTimeIncome||[]).filter(e=>e.date===d&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
+  return bolt+man;
+}
+function dateAddDays(d,n){ const x=new Date(d+'T12:00:00'); x.setDate(x.getDate()+n); return x.toISOString().slice(0,10); }
+// зведення по записаних змінах за останні N днів
+function calcEfficiency(daysBack){
+  daysBack=daysBack||30; const s=state.settings, log=state.shiftLog||{};
+  const to=today(), from=dateAddDays(to,-daysBack);
+  const o={days:0,km:0,earned:0,dph:0,vc:0,net:0,hDays:0,hours:0,hEarned:0,hKm:0};
+  Object.keys(log).sort().forEach(d=>{
+    const L=log[d]; if(d<from||d>to||!(L.km>0)) return;
+    const e=dayEarned(d), dph=s.dphEnabled?dphFromNetto(e):0, vc=calcVarCosts(L.km).total;
+    o.days++; o.km+=L.km; o.earned+=e; o.dph+=dph; o.vc+=vc; o.net+=e-dph-vc;
+    if(L.hours>0){ o.hDays++; o.hours+=L.hours; o.hEarned+=e; o.hKm+=L.km; o.hNet=(o.hNet||0)+(e-dph-vc); }
+  });
+  o.gKm=o.km>0?o.earned/o.km:0; o.nKm=o.km>0?o.net/o.km:0;
+  o.gH=o.hours>0?o.hEarned/o.hours:0; o.nH=o.hours>0?(o.hNet||0)/o.hours:0;
+  o.kmh=o.hours>0?o.hKm/o.hours:0; o.v=o.earned>0?o.vc/o.earned:0; o.dphShare=o.earned>0?o.dph/o.earned:0;
+  return o;
+}
+function saveShift(){
+  const d=document.getElementById('sh-date')?.value||today();
+  const km=parseFloat((document.getElementById('sh-km')?.value||'').replace(',','.'))||0;
+  const h=parseFloat((document.getElementById('sh-h')?.value||'').replace(',','.'))||0;
+  const e=parseFloat((document.getElementById('sh-e')?.value||'').replace(',','.'))||0;
+  if(!(km>0)){ showToast('Введи кілометри за день'); return; }
+  state.shiftLog=state.shiftLog||{};
+  const L={km}; if(h>0) L.hours=h; if(e>0) L.earned=e;
+  state.shiftLog[d]=L; _shiftOpen=false; _shiftDate=null; _gpC=null;
+  save(); showToast('✓ Зміну записано'); renderAll();
+}
+function delShift(d){
+  if(!state.shiftLog||!state.shiftLog[d]) return;
+  const old=state.shiftLog[d]; delete state.shiftLog[d]; _gpC=null; save(); renderAll();
+  showUndoToast('🗑','Видалено запис зміни',d,()=>{ state.shiftLog[d]=old; _gpC=null; save(); renderAll(); });
+}
+function editShift(d){ _shiftDate=d; _shiftOpen=true; renderAll(); setTimeout(()=>document.getElementById('sh-km')?.focus(),50); }
+function toggleShift(){ _shiftOpen=!_shiftOpen; _shiftDate=null; renderAll(); }
+function shiftCardHTML(){
+  const d=_shiftDate||today(), L=shiftDay(d), open=_shiftOpen;
+  const hasFuel=state.settings.fuelEnabled&&state.settings.fuelCons>0&&state.settings.fuelPrice>0;
+  if(!open){
+    const t0=shiftDay(today());
+    return `<div class="ds-card ds-pad" style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="ds-ico">🛣️</span>
+        <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800">Зміна сьогодні</div>
+        <div style="font-size:12px;color:var(--ds-t3);font-weight:600;margin-top:2px">${t0?`${fmt(t0.km)} км${t0.hours?` · ${t0.hours} год`:''}${t0.earned?` · ${fmt(t0.earned)} Kč`:''}`:'Запиши км і години — порахую Kč на км'}</div></div>
+        <button class="ds-btn" onclick="${t0?`editShift('${today()}')`:'toggleShift()'}">${t0?'Змінити':'Записати'}</button>
+      </div></div>`;
+  }
+  const bolt=ordersForDay(d).reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
+  return `<div class="ds-card ds-pad" style="margin-bottom:14px">
+    <div style="font-size:15px;font-weight:800;margin-bottom:12px">🛣️ Запис зміни</div>
+    <input class="add-inp" id="sh-date" type="date" value="${d}" style="width:100%;margin-bottom:10px" onchange="_shiftDate=this.value;renderAll()">
+    <div style="display:flex;gap:9px;margin-bottom:10px">
+      <input class="add-inp" id="sh-km" type="number" inputmode="decimal" placeholder="Км за день (всього)" value="${L?.km||''}" style="flex:1">
+      <input class="add-inp" id="sh-h" type="number" inputmode="decimal" placeholder="Годин" value="${L?.hours||''}" style="width:96px">
+    </div>
+    <input class="add-inp" id="sh-e" type="number" inputmode="decimal" placeholder="${bolt>0?`Заробив реально (Bolt: ${fmt(bolt)})`:'Заробив реально, Kč'}" value="${L?.earned||''}" style="width:100%;margin-bottom:10px">
+    <div style="font-size:11.5px;line-height:1.45;color:var(--ds-t3);font-weight:600;margin-bottom:12px">Км — усі проїхані за день, разом з дорогою без пасажира. «Заробив реально» можна не заповнювати — тоді візьму суму з Bolt.${hasFuel?'':'<br><b style="color:var(--gold)">Увага:</b> у Профіль → Авто не вказані розхід і ціна пального, тому пальне поки рахується як 0.'}</div>
+    <div style="display:flex;gap:9px"><button class="ds-btn" style="flex:1" onclick="saveShift()">Зберегти</button><button class="ds-btn ghost" onclick="toggleShift()">Скасувати</button></div>
+  </div>`;
+}
+function effCardHTML(){
+  const E=calcEfficiency(30), s=state.settings;
+  const noFuel=!(s.fuelEnabled&&s.fuelCons>0&&s.fuelPrice>0);
+  const log=state.shiftLog||{}, ds=Object.keys(log).sort().reverse().slice(0,7);
+  if(!E.days) return `<div class="ds-sec"><h3>Ефективність</h3><span>30 днів</span></div>
+    <div class="ds-card ds-pad"><div style="font-size:13.5px;line-height:1.5;color:var(--ds-t2);font-weight:600">Тут буде видно, скільки ти заробляєш на кожен кілометр і годину. Запиши першу зміну на Головній: км за день, години й скільки реально заробив.</div></div>`;
+  const kv=(l,v,c)=>`<div class="ds-inset"><small>${l}</small><b style="${c?'color:'+c:''}">${v}</b></div>`;
+  return `<div class="ds-sec"><h3>Ефективність</h3><span>${E.days} дн. записано · 30 дн.</span></div>
+    <div class="ds-card ds-pad">
+      <div class="ds-sum3" style="margin-bottom:10px">${kv('Чисті на км',E.nKm.toFixed(1)+' Kč','var(--gold)')}${kv('Брутто на км',E.gKm.toFixed(1)+' Kč','var(--mint)')}${kv('Км за день',fmt(E.km/E.days))}</div>
+      <div class="ds-sum3">${kv('Чисті на год',E.hours>0?fmt(E.nH)+' Kč':'—','var(--gold)')}${kv('Брутто на год',E.hours>0?fmt(E.gH)+' Kč':'—','var(--mint)')}${kv('Швидкість',E.hours>0?E.kmh.toFixed(0)+' км/год':'—')}</div>
+      <div style="margin-top:12px;font-size:12px;line-height:1.5;color:var(--ds-t3);font-weight:600">Усього за ${E.days} дн.: ${fmt(E.km)} км · виплати ${fmt(E.earned)} Kč · пальне і знос −${fmt(E.vc)}${E.dph>0?` · ПДВ −${fmt(E.dph)}`:''} · чисті ${fmt(E.net)} Kč. Пальне і знос зараз ≈ ${(E.v*100).toFixed(1)}% від виплат.</div>
+      ${noFuel?'<div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--gold)">⚠ Не вказані розхід і ціна пального (Профіль → Авто) — чисті на км завищені.</div>':''}
+    </div>
+    <div class="ds-card" style="margin-top:12px">${ds.map(d=>{const L=log[d],e=dayEarned(d),vc=calcVarCosts(L.km).total,dph=s.dphEnabled?dphFromNetto(e):0;
+      return `<div class="ds-li"><div class="t"><b>${d.slice(8)}.${d.slice(5,7)}</b><span>${fmt(L.km)} км${L.hours?` · ${L.hours} год`:''} · ${fmt(e)} Kč</span></div><div class="a" style="color:var(--gold)">${((e-vc-dph)/L.km).toFixed(1)}<small style="font-size:10px"> Kč/км</small></div><button onclick="editShift('${d}')" style="background:none;border:none;color:var(--ds-t2);font-size:15px;padding:4px;cursor:pointer">✎</button><button onclick="delShift('${d}')" style="background:none;border:none;color:var(--ds-t3);font-size:15px;padding:4px;cursor:pointer">✕</button></div>`;}).join('')}</div>`;
+}
+// найкращі години доби за даними Bolt (середній заробіток за годину доби)
+function bestHours(){
+  const orders=(state.boltData?.orders||[]).filter(o=>o.order_status==='finished'&&(o.order_finished_timestamp||o.order_created_timestamp));
+  const fmtH=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Prague',hour:'2-digit',hour12:false});
+  const sum={},cnt={},days={};
+  orders.forEach(o=>{ const ts=o.order_finished_timestamp||o.order_created_timestamp; const h=+fmtH.format(new Date(ts*1000))%24;
+    sum[h]=(sum[h]||0)+(o.order_price?.net_earnings||0); cnt[h]=(cnt[h]||0)+1; (days[h]=days[h]||new Set()).add(toPragueDate(ts)); });
+  return Object.keys(sum).map(h=>({h:+h,avg:sum[h]/days[h].size,n:cnt[h],days:days[h].size})).filter(x=>x.days>=2).sort((a,b)=>b.avg-a.avg);
+}
+function setKmPlan(k,v){ _kmPlan[k]=v; try{localStorage.setItem('ds_kmplan',JSON.stringify(_kmPlan));}catch(e){} const el=document.getElementById('kmplan'); if(el) el.outerHTML=kmPlanHTML(); }
+function kmPlanHTML(){
+  const m=calcMonth(), E=calcEfficiency(30), gp=grossParams();
+  const rate=_kmPlan.rate>0?_kmPlan.rate:15, net=_kmPlan.net!==false;
+  const need=Math.max(0,m.totalCosts-m.gross);              // скільки ще треба покрити чистими
+  const needPay=net?need:need*gp.K;                          // у тих одиницях, у яких задана ставка
+  const km=needPay/rate;
+  const dl=Math.max(1,daysLeftInMonth()), kmDay=km/dl;
+  const kmh=E.kmh>0?E.kmh:0;
+  const hours=kmh>0?km/kmh:0;
+  const act=net?E.nKm:E.gKm;
+  const best=bestHours().slice(0,3);
+  let verdict='';
+  if(need<=0) verdict='Витрати місяця вже покриті 🎉';
+  else if(act>0){ const kmAct=needPay/act; verdict=`За твоїм фактичним темпом (${act.toFixed(1)} Kč/км) це було б <b>${fmt(kmAct)} км</b>${act<rate?`, тобто ${fmt(kmAct-km)} км більше, ніж за планом`:''}.`; }
+  else verdict='Запиши кілька змін — тоді порівняю план з твоїм фактичним темпом.';
+  return `<div id="kmplan"><div class="ds-sec"><h3>План по кілометрах</h3><span>до кінця ${monthNameUk()}</span></div>
+    <div class="ds-card ds-pad">
+      <div class="ds-seg" style="margin-bottom:12px"><button class="${net?'on':''}" onclick="setKmPlan('net',true)">Чисті</button><button class="${net?'':'on'}" onclick="setKmPlan('net',false)">Брутто</button></div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="font-size:13.5px;font-weight:700;color:var(--ds-t2);flex:1">Хочу заробляти на кілометр</span>
+        <input class="add-inp" type="number" inputmode="decimal" value="${rate}" onchange="setKmPlan('rate',+this.value||15)" style="width:96px;text-align:right;font-weight:800;font-size:18px"><span style="font-weight:800;color:var(--ds-t3)">Kč/км</span></div>
+      ${need>0?`<div class="ds-sum3">
+        <div class="ds-inset"><small>Треба проїхати</small><b style="color:var(--gold)">${fmt(km)} км</b></div>
+        <div class="ds-inset"><small>На день (${dl} дн.)</small><b>${fmt(kmDay)} км</b></div>
+        <div class="ds-inset"><small>Годин усього</small><b>${kmh>0?fmt(hours)+' год':'—'}</b></div></div>
+      <div style="margin-top:10px;font-size:12.5px;line-height:1.5;color:var(--ds-t2);font-weight:600">Щоб покрити ще <b>${fmt(need)} Kč</b> чистими${net?'':` (це ${fmt(needPay)} Kč брутто)`}${kmh>0?` (твоя середня швидкість ${kmh.toFixed(0)} км/год) це ≈ <b>${(hours/dl).toFixed(1)} год на день</b>`:''}.</div>`:''}
+      <div style="margin-top:10px;font-size:12.5px;line-height:1.5;color:var(--ds-t2);font-weight:600">${verdict}</div>
+      ${kmh>0?'':'<div style="margin-top:8px;font-size:12px;color:var(--ds-t3);font-weight:600">Щоб порахувати години, записуй у зміні і години.</div>'}
+      ${best.length?`<div style="margin-top:12px;font-size:11px;letter-spacing:.08em;font-weight:800;color:var(--ds-t3)">НАЙКРАЩІ ГОДИНИ (за даними Bolt)</div><div class="ds-sum3" style="margin-top:8px">${best.map(b=>`<div class="ds-inset"><small>${String(b.h).padStart(2,'0')}–${String((b.h+1)%24).padStart(2,'0')} год</small><b style="color:var(--mint)">${fmt(b.avg)} Kč</b></div>`).join('')}</div><div style="margin-top:6px;font-size:11px;color:var(--ds-t3);font-weight:600">Середня виплата, яку ти закриваєш у цю годину за день.</div>`:''}
+    </div></div>`;
+}
 
 // ── TABS ──
 let curTab='dash';
