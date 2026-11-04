@@ -4370,11 +4370,12 @@ function renderMoney(){
     } else {
       const oneInc=(state.oneTimeIncome||[]).filter(e=>e.date&&e.date.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
       const rec=(state.recurringIncome||[]).reduce((a,e)=>a+e.amount,0);
-      const other=rec+oneInc, bolt=m.boltGross, tot=bolt+other;
+      const uber=(state.oneTimeIncome||[]).filter(e=>e.date&&e.date.startsWith(mo)&&/uber|убер/i.test(e.name||'')).reduce((a,e)=>a+e.amount,0);
+      const other=Math.max(0,rec+oneInc-uber), bolt=m.boltGross, tot=bolt+uber+other;
       head=`<div class="ds-card ds-pad">
         <div style="font-size:12px;color:var(--ds-t3);font-weight:700">Доходи місяця</div><div class="ds-big2">${fmt(tot)}<small>Kč</small></div>
-        ${tot>0?`<div class="ds-stack"><i style="width:${bolt/tot*100}%;background:#34e0a9"></i><i style="width:${other/tot*100}%;background:#a98bff"></i></div>
-        <div class="ds-leg"><span style="color:#34e0a9">● Bolt ${fmt(bolt)}</span><span style="color:#a98bff">● Інше ${fmt(other)}</span></div>`:''}
+        ${tot>0?`<div class="ds-stack"><i style="width:${bolt/tot*100}%;background:#34e0a9"></i><i style="width:${uber/tot*100}%;background:#a98bff"></i><i style="width:${other/tot*100}%;background:#ffc857"></i></div>
+        <div class="ds-leg"><span style="color:#34e0a9">● Bolt ${fmt(bolt)}</span><span style="color:#a98bff">● Uber ${fmt(uber)}</span>${other>0?`<span style="color:#ffc857">● Інше ${fmt(other)}</span>`:''}</div>`:''}
       </div>`;
     }
     document.getElementById('tab-money').innerHTML=`
@@ -4422,9 +4423,11 @@ function kmAdj(base,from,to){
   for(const d in log){ if(d>=from&&d<=to&&log[d].km>0) b+=log[d].km-srcKmDay(d); }
   return Math.max(0,b);
 }
+function uberForDay(d){ return (state.oneTimeIncome||[]).filter(e=>e.date===d&&/uber|убер/i.test(e.name||'')).reduce((a,e)=>a+e.amount,0); }
+function boltForDay(d){ return ordersForDay(d).reduce((a,o)=>a+(o.order_price?.net_earnings||0),0); }
 function dayEarned(d){
   const L=shiftDay(d);
-  if(L&&L.earned>0) return L.earned;
+  if(L&&L.earned>0) return L.earned; // старі записи з ручною сумою
   const bolt=ordersForDay(d).reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
   const man=(state.oneTimeIncome||[]).filter(e=>e.date===d&&e.name!=='Корекція балансу').reduce((a,e)=>a+e.amount,0);
   return bolt+man;
@@ -4434,10 +4437,11 @@ function dateAddDays(d,n){ const x=new Date(d+'T12:00:00'); x.setDate(x.getDate(
 function calcEfficiency(daysBack){
   daysBack=daysBack||30; const s=state.settings, log=state.shiftLog||{};
   const to=today(), from=dateAddDays(to,-daysBack);
-  const o={days:0,km:0,earned:0,dph:0,vc:0,net:0,hDays:0,hours:0,hEarned:0,hKm:0};
+  const o={bolt:0,uber:0,days:0,km:0,earned:0,dph:0,vc:0,net:0,hDays:0,hours:0,hEarned:0,hKm:0};
   Object.keys(log).sort().forEach(d=>{
     const L=log[d]; if(d<from||d>to||!(L.km>0)) return;
-    const e=dayEarned(d), dph=s.dphEnabled?dphFromNetto(e):0, vc=calcVarCosts(L.km).total;
+    const e=dayEarned(d); o.bolt+=boltForDay(d); o.uber+=uberForDay(d);
+    const dph=s.dphEnabled?dphFromNetto(e):0, vc=calcVarCosts(L.km).total;
     o.days++; o.km+=L.km; o.earned+=e; o.dph+=dph; o.vc+=vc; o.net+=e-dph-vc;
     if(L.hours>0){ o.hDays++; o.hours+=L.hours; o.hEarned+=e; o.hKm+=L.km; o.hNet=(o.hNet||0)+(e-dph-vc); }
   });
@@ -4450,17 +4454,21 @@ function saveShift(){
   const d=document.getElementById('sh-date')?.value||today();
   const km=parseFloat((document.getElementById('sh-km')?.value||'').replace(',','.'))||0;
   const h=parseFloat((document.getElementById('sh-h')?.value||'').replace(',','.'))||0;
-  const e=parseFloat((document.getElementById('sh-e')?.value||'').replace(',','.'))||0;
+  const u=parseFloat((document.getElementById('sh-u')?.value||'').replace(',','.'))||0;
   if(!(km>0)){ showToast('Введи кілометри за день'); return; }
   state.shiftLog=state.shiftLog||{};
-  const L={km}; if(h>0) L.hours=h; if(e>0) L.earned=e;
-  state.shiftLog[d]=L; _shiftOpen=false; _shiftDate=null; _gpC=null;
+  const L={km}; if(h>0) L.hours=h;
+  state.shiftLog[d]=L;
+  // дохід Uber — звичайний разовий дохід «Uber» (щоб він потрапив у всі розрахунки, ПДВ і статистику)
+  state.oneTimeIncome=(state.oneTimeIncome||[]).filter(e=>e.id!=='uber-'+d);
+  if(u>0) state.oneTimeIncome.push({id:'uber-'+d,name:'Uber',amount:u,date:d}); _shiftOpen=false; _shiftDate=null; _gpC=null;
   save(); showToast('✓ Зміну записано'); renderAll();
 }
 function delShift(d){
   if(!state.shiftLog||!state.shiftLog[d]) return;
-  const old=state.shiftLog[d]; delete state.shiftLog[d]; _gpC=null; save(); renderAll();
-  showUndoToast('🗑','Видалено запис зміни',d,()=>{ state.shiftLog[d]=old; _gpC=null; save(); renderAll(); });
+  const old=state.shiftLog[d], oldU=(state.oneTimeIncome||[]).find(e=>e.id==='uber-'+d);
+  delete state.shiftLog[d]; state.oneTimeIncome=(state.oneTimeIncome||[]).filter(e=>e.id!=='uber-'+d); _gpC=null; save(); renderAll();
+  showUndoToast('🗑','Видалено запис зміни',d,()=>{ state.shiftLog[d]=old; if(oldU) state.oneTimeIncome.push(oldU); _gpC=null; save(); renderAll(); });
 }
 function editShift(d){ _shiftDate=d; _shiftOpen=true; renderAll(); setTimeout(()=>document.getElementById('sh-km')?.focus(),50); }
 function toggleShift(){ _shiftOpen=!_shiftOpen; _shiftDate=null; renderAll(); }
@@ -4473,11 +4481,11 @@ function shiftCardHTML(){
       <div style="display:flex;align-items:center;gap:12px">
         <span class="ds-ico">🛣️</span>
         <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800">Зміна сьогодні</div>
-        <div style="font-size:12px;color:var(--ds-t3);font-weight:600;margin-top:2px">${t0?`${fmt(t0.km)} км${t0.hours?` · ${t0.hours} год`:''}${t0.earned?` · ${fmt(t0.earned)} Kč`:''}`:'Запиши км і години — порахую Kč на км'}</div></div>
+        <div style="font-size:12px;color:var(--ds-t3);font-weight:600;margin-top:2px">${t0?`${fmt(t0.km)} км${t0.hours?` · ${t0.hours} год`:''}${uberForDay(today())?` · Uber ${fmt(uberForDay(today()))} Kč`:''}`:'Запиши км і години — порахую Kč на км'}</div></div>
         <button class="ds-btn" onclick="${t0?`editShift('${today()}')`:'toggleShift()'}">${t0?'Змінити':'Записати'}</button>
       </div></div>`;
   }
-  const bolt=ordersForDay(d).reduce((a,o)=>a+(o.order_price?.net_earnings||0),0);
+  const bolt=boltForDay(d);
   return `<div class="ds-card ds-pad" style="margin-bottom:14px">
     <div style="font-size:15px;font-weight:800;margin-bottom:12px">🛣️ Запис зміни</div>
     <input class="add-inp" id="sh-date" type="date" value="${d}" style="width:100%;margin-bottom:10px" onchange="_shiftDate=this.value;renderAll()">
@@ -4485,8 +4493,8 @@ function shiftCardHTML(){
       <input class="add-inp" id="sh-km" type="number" inputmode="decimal" placeholder="Км за день (всього)" value="${L?.km||''}" style="flex:1">
       <input class="add-inp" id="sh-h" type="number" inputmode="decimal" placeholder="Годин" value="${L?.hours||''}" style="width:96px">
     </div>
-    <input class="add-inp" id="sh-e" type="number" inputmode="decimal" placeholder="${bolt>0?`Заробив реально (Bolt: ${fmt(bolt)})`:'Заробив реально, Kč'}" value="${L?.earned||''}" style="width:100%;margin-bottom:10px">
-    <div style="font-size:11.5px;line-height:1.45;color:var(--ds-t3);font-weight:600;margin-bottom:12px">Км — усі проїхані за день, разом з дорогою без пасажира. «Заробив реально» можна не заповнювати — тоді візьму суму з Bolt.${hasFuel?'':'<br><b style="color:var(--gold)">Увага:</b> у Профіль → Авто не вказані розхід і ціна пального, тому пальне поки рахується як 0.'}</div>
+    <input class="add-inp" id="sh-u" type="number" inputmode="decimal" placeholder="Дохід з Uber за день, Kč (якщо був)" value="${uberForDay(d)||''}" style="width:100%;margin-bottom:10px">
+    <div style="font-size:11.5px;line-height:1.45;color:var(--ds-t3);font-weight:600;margin-bottom:12px">Км — усі проїхані за день, разом з дорогою без пасажира. Дохід Bolt підтягується сам (за цей день: ${fmt(bolt)} Kč), вводь лише суму з Uber.${hasFuel?'':'<br><b style="color:var(--gold)">Увага:</b> у Профіль → Авто не вказані розхід і ціна пального, тому пальне поки рахується як 0.'}</div>
     <div style="display:flex;gap:9px"><button class="ds-btn" style="flex:1" onclick="saveShift()">Зберегти</button><button class="ds-btn ghost" onclick="toggleShift()">Скасувати</button></div>
   </div>`;
 }
@@ -4501,11 +4509,13 @@ function effCardHTML(){
     <div class="ds-card ds-pad">
       <div class="ds-sum3" style="margin-bottom:10px">${kv('Чисті на км',E.nKm.toFixed(1)+' Kč','var(--gold)')}${kv('Брутто на км',E.gKm.toFixed(1)+' Kč','var(--mint)')}${kv('Км за день',fmt(E.km/E.days))}</div>
       <div class="ds-sum3">${kv('Чисті на год',E.hours>0?fmt(E.nH)+' Kč':'—','var(--gold)')}${kv('Брутто на год',E.hours>0?fmt(E.gH)+' Kč':'—','var(--mint)')}${kv('Швидкість',E.hours>0?E.kmh.toFixed(0)+' км/год':'—')}</div>
+      <div class="ds-stack" style="margin-top:14px"><i style="width:${E.earned>0?E.bolt/E.earned*100:0}%;background:#34e0a9"></i><i style="width:${E.earned>0?E.uber/E.earned*100:0}%;background:#a98bff"></i></div>
+      <div class="ds-leg"><span style="color:#34e0a9">● Bolt ${fmt(E.bolt)} Kč</span><span style="color:#a98bff">● Uber ${fmt(E.uber)} Kč${E.earned>0?` (${Math.round(E.uber/E.earned*100)}%)`:''}</span></div>
       <div style="margin-top:12px;font-size:12px;line-height:1.5;color:var(--ds-t3);font-weight:600">Усього за ${E.days} дн.: ${fmt(E.km)} км · виплати ${fmt(E.earned)} Kč · пальне і знос −${fmt(E.vc)}${E.dph>0?` · ПДВ −${fmt(E.dph)}`:''} · чисті ${fmt(E.net)} Kč. Пальне і знос зараз ≈ ${(E.v*100).toFixed(1)}% від виплат.</div>
       ${noFuel?'<div style="margin-top:8px;font-size:12px;font-weight:700;color:var(--gold)">⚠ Не вказані розхід і ціна пального (Профіль → Авто) — чисті на км завищені.</div>':''}
     </div>
     <div class="ds-card" style="margin-top:12px">${ds.map(d=>{const L=log[d],e=dayEarned(d),vc=calcVarCosts(L.km).total,dph=s.dphEnabled?dphFromNetto(e):0;
-      return `<div class="ds-li"><div class="t"><b>${d.slice(8)}.${d.slice(5,7)}</b><span>${fmt(L.km)} км${L.hours?` · ${L.hours} год`:''} · ${fmt(e)} Kč</span></div><div class="a" style="color:var(--gold)">${((e-vc-dph)/L.km).toFixed(1)}<small style="font-size:10px"> Kč/км</small></div><button onclick="editShift('${d}')" style="background:none;border:none;color:var(--ds-t2);font-size:15px;padding:4px;cursor:pointer">✎</button><button onclick="delShift('${d}')" style="background:none;border:none;color:var(--ds-t3);font-size:15px;padding:4px;cursor:pointer">✕</button></div>`;}).join('')}</div>`;
+      return `<div class="ds-li"><div class="t"><b>${d.slice(8)}.${d.slice(5,7)}</b><span>${fmt(L.km)} км${L.hours?` · ${L.hours} год`:''} · Bolt ${fmt(boltForDay(d))}${uberForDay(d)?` + Uber ${fmt(uberForDay(d))}`:''}</span></div><div class="a" style="color:var(--gold)">${((e-vc-dph)/L.km).toFixed(1)}<small style="font-size:10px"> Kč/км</small></div><button onclick="editShift('${d}')" style="background:none;border:none;color:var(--ds-t2);font-size:15px;padding:4px;cursor:pointer">✎</button><button onclick="delShift('${d}')" style="background:none;border:none;color:var(--ds-t3);font-size:15px;padding:4px;cursor:pointer">✕</button></div>`;}).join('')}</div>`;
 }
 // найкращі години доби за даними Bolt (середній заробіток за годину доби)
 function bestHours(){
