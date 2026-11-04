@@ -681,6 +681,13 @@ input[type=range].ds-rng::-moz-range-thumb{width:30px;height:30px;border-radius:
 .ds-btn{border:none;cursor:pointer;font:800 14px/1 'Manrope','Inter',sans-serif;color:#04140d;padding:13px 18px;border-radius:14px;background:linear-gradient(180deg,#5ff0b0,#1fc98a);box-shadow:0 5px 0 #0f7f57,0 10px 18px rgba(0,0,0,.35)}
 .ds-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #0f7f57}
 .ds-btn.ghost{background:linear-gradient(180deg,var(--ds-r2),var(--ds-r1));color:var(--ds-t2);box-shadow:var(--ds-shadow);border:1px solid var(--ds-line)}
+.ds-stack{display:flex;height:14px;border-radius:99px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.5);margin-top:14px;background:rgba(0,0,0,.3)}.ds-stack i{display:block}
+.ds-leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;font-weight:800}
+.ds-tile b{font-variant-numeric:tabular-nums}
+.ds-g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.ds-g2 .ds-card{margin:0}
+.ds-tile{padding:14px 15px;min-width:0}.ds-tile small{display:block;font-size:12px;font-weight:700;color:var(--ds-t3)}
+.ds-tile b{display:block;font-size:26px;font-weight:800;margin:6px 0 3px;letter-spacing:-.03em;line-height:1.05}
+.ds-tile em{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:var(--ds-t2);line-height:1.35}
 </style>
 </head>
 <body>
@@ -2218,7 +2225,8 @@ function renderDash(){
 
   document.getElementById('tab-dash').innerHTML = `
     ${goalCardHTML(m)}
-    <!-- ═══ ЗЕЛЕНА КАРТКА З МАШИНОЮ ═══ -->
+    ${(_editingBalance||_balanceChoice)?`
+    <!-- ═══ КАРТКА РЕДАГУВАННЯ БАЛАНСУ ═══ -->
     <div class="cash-card${(_editingBalance||_balanceChoice)?' editing':''}">
       <div class="cash-card-lbl">💰 ${t('onHand')}</div>
       ${_balanceChoice?`
@@ -2281,77 +2289,10 @@ function renderDash(){
         </div>
         <div class="cash-card-sub">${t('onHand')==='НА РУКАХ ЗАРАЗ'?'Доступно зараз':''}</div>
       `}
-    </div>
+    </div>`:''}
 
-    ${todayCardHTML(td)}
+    ${dashTilesHTML(m,td,w,rd)}
     ${shiftCardHTML()}
-    ${nextPayCardHTML()}
-
-    <!-- SWIPE KEY CARDS -->
-    ${renderSwipeCards(m,td,w)}
-
-    <!-- PAYMENT ALERT CARDS -->
-    ${renderAlertCard()}
-
-    <!-- COST BARS -->
-    <div class="cst-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <span style="font-size:9px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.12em;">${t('monthCosts')}</span>
-        <span style="font-size:15px;font-weight:800;color:#FF4545;font-variant-numeric:tabular-nums;letter-spacing:-.02em;">-${fmt(barsTotal)} Kč</span>
-      </div>
-      ${(()=>{
-        if(!catGroups.length) return '<div style="font-size:10px;color:rgba(255,255,255,.2);text-align:center;padding:14px 0;">Витрат ще немає</div>';
-        const R=54, CIRC=2*Math.PI*R; let acc=0;
-        const segs=catGroups.map(g=>{
-          const len=(g.sum/barsTotal)*CIRC, off=-acc; acc+=len;
-          return `<circle cx="62" cy="62" r="${R}" fill="none" stroke="${CATS[g.k].col}" stroke-width="14" stroke-dasharray="${len.toFixed(1)} ${(CIRC-len).toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/>`;
-        }).join('');
-        return `
-        <div style="display:flex;align-items:center;gap:16px;margin:4px 0 16px;">
-          <div style="position:relative;width:124px;height:124px;flex-shrink:0;">
-            <svg width="124" height="124" viewBox="0 0 124 124" style="transform:rotate(-90deg);">
-              <circle cx="62" cy="62" r="${R}" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="14"/>
-              ${segs}
-            </svg>
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-              <div style="font-size:16px;font-weight:800;letter-spacing:-.02em;">${fmt(barsTotal)}</div>
-              <div style="font-size:7.5px;letter-spacing:.1em;color:rgba(255,255,255,.3);font-weight:700;margin-top:2px;">Kč / МІСЯЦЬ</div>
-            </div>
-          </div>
-          <div style="flex:1;display:flex;flex-direction:column;gap:9px;">
-            ${catGroups.map(g=>`<div style="display:flex;align-items:center;gap:8px;">
-              <span style="width:9px;height:9px;border-radius:3px;background:${CATS[g.k].col};flex-shrink:0;"></span>
-              <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.75);flex:1;">${catName(g.k)}</span>
-              <span style="font-size:11px;font-weight:800;color:rgba(255,255,255,.45);">${Math.round(g.sum/barsTotal*100)}%</span>
-            </div>`).join('')}
-          </div>
-        </div>
-
-        ${catGroups.map(g=>{
-          const C=CATS[g.k], gmax=Math.max(...g.items.map(x=>x.val),1);
-          return `<div style="margin-bottom:6px;border-radius:13px;overflow:hidden;background:rgba(255,255,255,.025);">
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-left:3px solid ${C.col};">
-              <span style="font-size:14px;">${C.ico}</span>
-              <span style="font-size:12.5px;font-weight:700;flex:1;">${catName(g.k)}</span>
-              <span style="font-size:13px;font-weight:800;color:${C.col};font-variant-numeric:tabular-nums;">-${fmt(g.sum)}</span>
-            </div>
-            <div style="padding:2px 12px 9px 25px;">
-              ${g.items.map(it=>`<div style="display:flex;align-items:center;gap:9px;padding:4px 0;">
-                <span style="font-size:11.5px;color:rgba(255,255,255,.45);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${it.name}</span>
-                <span style="width:48px;height:4px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;flex-shrink:0;"><span style="display:block;height:100%;width:${(it.val/gmax*100).toFixed(0)}%;background:${C.col};opacity:.65;border-radius:2px;"></span></span>
-                <span style="font-size:11.5px;font-weight:700;color:rgba(255,255,255,.65);width:56px;text-align:right;font-variant-numeric:tabular-nums;">-${fmt(it.val)}</span>
-              </div>`).join('')}
-            </div>
-          </div>`;
-        }).join('')}`;
-      })()}
-      ${m.dph>0?`<div style="margin-top:10px;padding:8px 10px;border-radius:9px;background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.16);font-size:9px;color:rgba(190,170,255,.8);line-height:1.5;">
-        🧾 <b>ПДВ reverse charge</b> · Brutto ${fmt(m.dphBrutto)} Kč → комісія ${s.boltCommission||25}% = ${fmt(m.dphCommission)} Kč → ПДВ ${s.dphRate||21}% = <b>${fmt(m.dph)} Kč</b>
-      </div>`:''}
-    </div>
-
-    ${reportTeaserHTML()}
-    ${forecastCardHTML(rd)}
     ${state.lastSync?`<div class="hint-txt">Дані з Bolt · ${state.lastSync}</div>`:`<div class="hint-txt">${t('noData')}</div>`}
   `;
   }catch(err){
@@ -4160,7 +4101,7 @@ function todayCardHTML(td){
   const left=Math.max(0,goal-td.net);
   const pct=Math.round(td.pct||0);
   const col=pct>=100?'#34e0a9':pct>=60?'#ffc857':'#ff6f61';
-  const earned=G?(td.boltGross/(1-gp.c)+td.oneTimeInc):td.net;
+  const earned=G?(td.boltGross+td.oneTimeInc):td.net;
   const target=G?toGross(goal):goal;
   const circ=2*Math.PI*40, off=(circ*(1-Math.min(100,pct)/100)).toFixed(1);
   const hint=left>0
@@ -4171,6 +4112,35 @@ function todayCardHTML(td){
       <b style="color:${col}">${(!G&&earned<0)?'−':''}${fmt(earned)}</b>
       <em>з ${fmt(target)} Kč ${G?'брутто':'чистими'}<br>${hint}</em></div>
     <div class="ds-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="12"/><circle cx="50" cy="50" r="40" fill="none" stroke="${col}" stroke-width="11" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off}"/></svg><span style="color:${col}">${pct}%</span></div>
+  </div>`;
+}
+
+
+// ── ГОЛОВНА (варіант B): 4 плитки ──
+function dashTilesHTML(m,td,w,rd){
+  const G=_grossMode;
+  const bal=rd.netActual;
+  const goal=td.goal||0, pct=Math.round(td.pct||0);
+  const tcol=pct>=100?'var(--mint)':pct>=60?'var(--gold)':'var(--coral)';
+  const earned=G?(td.boltGross+td.oneTimeInc):td.net;
+  const target=G?toGross(goal):goal;
+  const wk=w.netVarOnly;
+  const up=calcUpcoming().filter(u=>!isPaid(u.dueDay))[0];
+  let pay;
+  if(up){
+    const have=Math.max(0,up.balanceBefore+up.recurringForPeriod+up.oneTimeForPeriod-up.oneTimeExpForPeriod);
+    const short=Math.max(0,up.total-have);
+    const nm=up.costs.map(c=>c.name).join(' + ');
+    const when=up.daysUntil===0?'сьогодні':`через ${up.daysUntil} дн.`;
+    pay=short>0
+      ?`<b class="num" style="color:var(--coral)">−${fmt(gv(short))}</b><em>бракує · ${when} · ${nm}${G?' · брутто':''}</em>`
+      :`<b class="num" style="color:var(--mint)">Вистачає</b><em>${fmt(up.total)} Kč · ${when} · ${nm}</em>`;
+  } else pay=`<b class="num" style="color:var(--mint)">—</b><em>платежів попереду немає</em>`;
+  return `<div class="ds-g2">
+    <div class="ds-card ds-tile" onclick="toggleBalanceEdit()" style="cursor:pointer"><small>💰 На руках</small><b class="num">${bal<0?'−':''}${fmt(bal)}</b><em>Kč зараз · ✎ змінити</em></div>
+    <div class="ds-card ds-tile"><small>Сьогодні${G?' · брутто':''}</small><b class="num" style="color:${tcol}">${(!G&&earned<0)?'−':''}${fmt(earned)}</b><em>з ${fmt(target)} · ${pct}%</em></div>
+    <div class="ds-card ds-tile"><small>Цей тиждень</small><b class="num" style="color:${wk>=0?'var(--mint)':'var(--coral)'}">${wk<0?'−':'+'}${fmt(wk)}</b><em>чисті · ${w.trips} поїздок</em></div>
+    <div class="ds-card ds-tile"><small>⏰ Найближчий платіж</small>${pay}</div>
   </div>`;
 }
 
@@ -4373,23 +4343,45 @@ function planDraw(r){
 let _moneyTab='exp', _moneyAdd=false;
 function renderMoney(){
   try{
-    const mo=todayMonth(), m=calcMonth();
+    const mo=todayMonth(), m=calcMonth(), st=state.settings;
     const isExp=_moneyTab==='exp';
-    const weekly=(state.weeklyFixedCosts||[]).reduce((a,c)=>a+c.amount,0)*4.33;
-    const planned=monthlyFixedForMonth(mo)+weekly;
     const paid=(state.paidExpenses||[]).filter(p=>p.month===mo).reduce((a,p)=>a+p.amount,0);
-    const oneInc=(state.oneTimeIncome||[]).filter(e=>e.date&&e.date.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
-    const rec=(state.recurringIncome||[]).reduce((a,e)=>a+e.amount,0);
-    const sums=isExp
-      ?[['Заплановано',fmt(planned),''],['Сплачено',fmt(paid),'var(--mint)'],['Залишилось',fmt(Math.max(0,planned-paid)),'var(--gold)']]
-      :[['Усього',fmt(m.gross-m.rollover),''],['Bolt',fmt(m.boltGross),'var(--mint)'],['Інше',fmt(rec+oneInc),'var(--violet)']];
+    let head='';
+    if(isExp){
+      const bars=[];
+      if(st.fuelEnabled&&m.vc.fuel>0) bars.push({val:m.vc.fuel,cat:'auto'});
+      if(st.amort>0&&m.vc.amort>0) bars.push({val:m.vc.amort,cat:'auto'});
+      (state.monthlyFixedCosts||[]).forEach(c=>{ if(monthlyCountsInMonth(c,mo)) bars.push({val:c.amount,cat:catOf(c)}); });
+      (state.weeklyFixedCosts||[]).forEach(c=>bars.push({val:c.amount*4.33,cat:catOf(c)}));
+      (state.oneTimeExpenses||[]).filter(e=>e.date?.startsWith(mo)&&e.name!=='Корекція балансу').forEach(c=>bars.push({val:c.amount,cat:catOf(c)}));
+      if(m.dph>0) bars.push({val:m.dph,cat:'tax'});
+      const tot=bars.reduce((a,b)=>a+b.val,0);
+      const by={}; bars.forEach(b=>by[b.cat]=(by[b.cat]||0)+b.val);
+      const groups=CAT_ORDER.filter(k=>by[k]>0).sort((a,b)=>by[b]-by[a]);
+      head=`<div class="ds-card ds-pad">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px">
+          <div><div style="font-size:12px;color:var(--ds-t3);font-weight:700">Витрати місяця</div><div class="ds-big2">${fmt(tot)}<small>Kč</small></div></div>
+          <div style="text-align:right"><div style="font-size:12px;color:var(--ds-t3);font-weight:700">Сплачено</div><div style="font-size:20px;font-weight:800;color:var(--mint);margin-top:6px">${fmt(paid)}</div></div>
+        </div>
+        ${tot>0?`<div class="ds-stack">${groups.map(k=>`<i style="width:${by[k]/tot*100}%;background:${CATS[k].col}"></i>`).join('')}</div>
+        <div class="ds-leg">${groups.map(k=>`<span style="color:${CATS[k].col}">● ${catName(k)} ${Math.round(by[k]/tot*100)}%</span>`).join('')}</div>`:''}
+        ${m.dph>0?`<div style="margin-top:10px;font-size:11.5px;color:var(--ds-t3);font-weight:600">У витратах є ПДВ ${st.dphRate||21}% (reverse charge): ${fmt(m.dph)} Kč</div>`:''}
+      </div>`;
+    } else {
+      const oneInc=(state.oneTimeIncome||[]).filter(e=>e.date&&e.date.startsWith(mo)).reduce((a,e)=>a+e.amount,0);
+      const rec=(state.recurringIncome||[]).reduce((a,e)=>a+e.amount,0);
+      const other=rec+oneInc, bolt=m.boltGross, tot=bolt+other;
+      head=`<div class="ds-card ds-pad">
+        <div style="font-size:12px;color:var(--ds-t3);font-weight:700">Доходи місяця</div><div class="ds-big2">${fmt(tot)}<small>Kč</small></div>
+        ${tot>0?`<div class="ds-stack"><i style="width:${bolt/tot*100}%;background:#34e0a9"></i><i style="width:${other/tot*100}%;background:#a98bff"></i></div>
+        <div class="ds-leg"><span style="color:#34e0a9">● Bolt ${fmt(bolt)}</span><span style="color:#a98bff">● Інше ${fmt(other)}</span></div>`:''}
+      </div>`;
+    }
     document.getElementById('tab-money').innerHTML=`
       <div class="ds-sec" style="margin-top:6px"><h3>Гроші</h3><span>${monthNameUk()}</span></div>
       <div class="ds-seg"><button class="${isExp?'on':''}" onclick="_moneyTab='exp';renderMoney()">Витрати</button><button class="${isExp?'':'on'}" onclick="_moneyTab='inc';renderMoney()">Доходи</button></div>
-      <div class="ds-sum3">${sums.map(x=>`<div class="ds-inset"><small>${x[0]}</small><b style="${x[2]?'color:'+x[2]:''}">${x[1]}</b></div>`).join('')}</div>
-      <div style="height:14px"></div>
-      ${_moneyAdd?'':periodSeg(isExp?'exp':'inc',isExp?_expPeriod:_incPeriod)}
-      ${_moneyAdd?uniAddForm(isExp?'exp':'inc'):''}
+      ${head}
+      ${_moneyAdd?uniAddForm(isExp?'exp':'inc'):periodSeg(isExp?'exp':'inc',isExp?_expPeriod:_incPeriod)}
       ${uniList(isExp?'exp':'inc')}
       <button class="ds-fab" onclick="_moneyAdd=!_moneyAdd;renderMoney()" aria-label="Додати">${_moneyAdd?'×':'+'}</button>`;
   }catch(err){
