@@ -717,8 +717,14 @@ input[type=range].ds-rng::-moz-range-thumb{width:30px;height:30px;border-radius:
 .iekey{display:flex;gap:14px;font-size:11px;font-weight:700;color:var(--ds-t2);margin-top:10px}.iekey i{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px}
 .repseg{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(0,0,0,.35);box-shadow:inset 0 2px 4px #000;margin-bottom:10px}.repseg div{flex:1;text-align:center;padding:8px 0;border-radius:10px;font-size:12px;font-weight:700;color:rgba(255,255,255,.45);cursor:pointer}.repseg .on{background:linear-gradient(180deg,#323a46,#262c35);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 8px -4px #000}
 .rep-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:14px}.rep-h small{font-size:11px;color:var(--ds-t3);font-weight:700}.rep-note{font-size:11px;color:var(--ds-t3);font-weight:600;margin-top:6px}
-.repmini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}.repmini div{border-radius:14px;padding:10px;background:rgba(0,0,0,.35);box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}.repmini span{font-size:10px;font-weight:700;color:var(--ds-t3)}.repmini b{display:block;font-size:17px;margin-top:3px}
+.repmini{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}.repmini div{border-radius:14px;padding:10px;background:rgba(0,0,0,.35);box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}.repmini span{font-size:10px;font-weight:700;color:var(--ds-t3)}.repmini b{display:block;font-size:17px;margin-top:3px}
 .reprow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13px;font-weight:700}.reprow small{display:block;color:var(--ds-t3);font-size:10px;margin-top:2px}
+.mo-big{font-size:46px;font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}.mo-big small{font-size:15px;color:var(--ds-t3);margin-left:6px;font-weight:700;letter-spacing:0}.mo-sub{font-size:13px;font-weight:700;color:#8fb7e8;margin-top:4px}
+.chips{display:flex;gap:6px}.chip{padding:7px 11px;border-radius:12px;background:linear-gradient(180deg,#2b323c,#21262e);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 8px -4px #000;font-size:11px;font-weight:700;color:var(--ds-t2);cursor:pointer}
+.lgd{display:flex;gap:14px;font-size:11px;font-weight:700;color:var(--ds-t2);flex-wrap:wrap}.lgd i{display:inline-block;vertical-align:middle;margin-right:6px}
+.mo-chart{border-radius:18px;background:rgba(0,0,0,.38);box-shadow:inset 0 2px 6px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.03);margin-top:10px;overflow:hidden}
+.mo-warn{border-radius:20px;padding:14px 16px;background:linear-gradient(160deg,#4a2a30,#331d21);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px rgba(229,115,127,.25),0 14px 20px -14px #000;margin-bottom:10px}.mo-warn b{display:block;font-size:14px;color:#ffb3ba;margin-bottom:3px}.mo-warn span{font-size:12px;font-weight:600;color:#e5aab0}
+.mrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid rgba(255,255,255,.06)}.mrow:first-of-type{border-top:0}.mrow .nm{width:56px;font-size:13px;font-weight:800;white-space:nowrap}.mrow small{display:block;font-size:10px;color:var(--ds-t3);font-weight:700}.mrow .tr{flex:1;height:8px;border-radius:8px;background:rgba(0,0,0,.4);box-shadow:inset 0 1px 2px #000;overflow:hidden}.mrow .tr i{display:block;height:100%;border-radius:8px}.mrow .vl{width:84px;text-align:right;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
 .hring{border-radius:50%;background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(0,0,0,.4) 0);display:flex;align-items:center;justify-content:center;font-weight:800;position:relative;flex:none}
 .hring:before{content:'';position:absolute;inset:18%;border-radius:50%;background:#1d1708;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}.hring span{position:relative}
 .hbars{display:flex;align-items:flex-end;gap:4px;height:100%;min-height:36px}.hbars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#ffd27a,#c98a1f);display:block;min-height:3px}.hbars i.o{background:rgba(255,255,255,.12)}
@@ -1771,7 +1777,7 @@ function repPeriodCardsHTML(){
   <div class="ds-card ds-pad" style="margin-bottom:10px"><div class="rep-h"><b>Дохід і витрати</b><small>по днях</small></div>
     ${incExpBars(R.days,96)}<div class="iekey"><span><i style="background:#f3b34a"></i>Дохід ${fmt(R.inc)}</span><span><i style="background:#d9606c"></i>Витрати ${fmt(R.exp)}</span></div></div>
   <div class="ds-card ds-pad" style="margin-bottom:12px"><div class="rep-h"><b>За період</b></div>
-    <div class="repmini">${mini('Поїздок',R.trips)}${mini('Пробіг',R.km?fmt(R.km)+' км':'—')}${mini('Годин',R.hours?Math.round(R.hours):'—')}</div>
+    <div class="repmini">${mini('Пробіг',R.km?fmt(R.km)+' км':'—')}${mini('Годин',R.hours?Math.round(R.hours):'—')}</div>
     <div class="reprow"><span>Чисті на км<small>після пального, зносу й ПДВ</small></span><b style="color:var(--mint)">${R.km>0?nKm.toFixed(1)+' Kč':'—'}</b></div>
     <div class="reprow"><span>Брутто на км</span><b style="color:#8fb7e8">${R.km>0?gKm.toFixed(1)+' Kč':'—'}</b></div></div>`;
 }
@@ -2493,7 +2499,7 @@ function renderReports(){
               <div onclick="toggleMonth('${mo}')" style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px 11px 20px;cursor:pointer;">
                 <div>
                   <div style="font-size:13px;font-weight:600;color:#fff;">${moName} ${mo.slice(0,4)}</div>
-                  <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:2px;">${mc.trips} поїздок · ${fmt(mc.km)} км</div>
+                  <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:2px;">${fmt(mc.km)} км</div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
                   <span style="font-size:14px;font-weight:700;color:${col};">${fmtS(mc.net)} Kč</span>
@@ -2658,7 +2664,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
           ${!isExpanded?`
           <!-- Collapsed hint -->
           <div style="padding:0 13px 7px;display:flex;align-items:center;gap:5px;">
-            <span style="font-size:8px;color:rgba(255,255,255,.18);">${day.trips} поїздок${day.km>0?' · '+fmt(day.km)+' км':''}</span>
+            <span style="font-size:8px;color:rgba(255,255,255,.18);">${day.km>0?fmt(day.km)+' км':''}</span>
             ${_dphDay>0?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:5px;background:rgba(167,139,250,.1);color:#A78BFA;border:1px solid rgba(167,139,250,.2);margin-left:4px;">🧾 ПДВ −${fmt(_dphDay)} Kč</span>`:''}
             ${day.correction?`<span style="font-size:8px;color:#FB923C;font-weight:600;margin-left:4px;">✏️ корекція балансу</span>`:''}
             <span style="margin-left:auto;font-size:8px;color:rgba(79,197,140,.35);font-weight:600;">+ додати дохід</span>
@@ -2683,6 +2689,8 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
   // ── BUILD DAY-BY-DAY CHART DATA (correct logic) ──
   const chartMo=_chartMonth||todayMonth();
   const [cy,cm]=chartMo.split('-').map(Number);
+  const _sh=n=>{ const d=new Date(cy,cm-1+n,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); };
+  const prevMo=_sh(-1), nextMo=_sh(1);
   const daysInMo=new Date(cy,cm,0).getDate();
   const todayD=today();
   const isCurrentMo=(chartMo===todayMonth());
@@ -2873,107 +2881,25 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
   const behindPlan=isCurrentMo&&lastAct&&projPoints.length>0&&lastAct.cum<(projPoints[0]?.v||0)-500;
 
   return `
-    <!-- HERO — only in Months -->
-    <div class="rep-hero">
-      <div class="rh-lbl">${t('monthReport')} · ${chartMo}</div>
-      <div class="rh-num" style="color:${m.net>=0?'#fff':'#FF4545'};">${fmtS(m.net)} <span style="font-size:16px;color:rgba(255,255,255,.3);">Kč</span></div>
-      <div class="rh-prog"><div class="rh-fill" style="width:${pct.toFixed(0)}%;background:${progColor};"></div></div>
-      <div class="rh-prow"><span>0</span><span style="color:${progColor};font-weight:700;">${Math.round(m.pct)}%</span><span>${fmt(m.totalCosts)}</span></div>
+    <div class="ds-card ds-pad" style="margin-bottom:10px">
+      <div class="rep-h"><span style="font-weight:700;color:var(--ds-t2)">${moNames[chartMo.slice(5)]||chartMo.slice(5)} ${chartMo.slice(0,4)}</span><small>покрито ${Math.round(m.pct)}%</small></div>
+      <div class="mo-big" style="color:${m.net>=0?'var(--mint)':'#ff9aa4'}">${fmtS(m.net)}<small>Kč</small></div>
+      <div class="mo-sub">${m.net>=0?'чистий прибуток місяця':'треба покрити '+fmt(m.totalCosts)+' Kč'}</div>
+      <div class="rh-prog" style="margin-top:12px"><div class="rh-fill" style="width:${Math.max(2,pct).toFixed(0)}%;background:${m.net>=0?'linear-gradient(90deg,#c98a1f,#f3b34a)':'linear-gradient(90deg,#8c3a44,#e5737f)'};"></div></div>
     </div>
-
-    <!-- WIDGET STRIP — swipeable, customizable -->
-    ${(()=>{
-      // Available widget definitions
-      const daysWithData=Object.keys(boltByDay).length||1;
-      const avgDay=m.gross>0?Math.round(m.gross/Math.max(1,daysWithData)):0;
-      const last3=last6Data.slice(0,3).reduce((s,x)=>s+(x.calc.gross||0),0);
-      const last6total=last6Data.reduce((s,x)=>s+(x.calc.gross||0),0);
-      const last3net=last6Data.slice(0,3).reduce((s,x)=>s+(x.calc.net||0),0);
-      const last6net=last6Data.reduce((s,x)=>s+(x.calc.net||0),0);
-      const netto=m.net;
-      const allWidgets={
-        'netto':  {lbl:t('monthNetto'),      val:fmtS(netto),       col:netto>=0?'#4fc58c':'#FF4545', sub:`${diff>=0?'▲':'▼'} ${diff>=0?'+':''}${fmt(Math.abs(diff))} vs мин.`},
-        'prev':   {lbl:t('monthPrev'),          val:prevCalc?fmtS(prevCalc.net):'—', col:'rgba(255,255,255,.4)', sub:last6[1]},
-        'brutto': {lbl:t('monthBrutto'),           val:'+'+fmt(m.gross),  col:'#FFB800', sub:'Bolt+планові'},
-        'goal':   {lbl:'ЦІЛЬ/ДЕНЬ',        val:fmt(dailyTarget),  col:'#ffd27a', sub:'з налаштувань'},
-        'avg':    {lbl:'СЕРЕД/ДЕНЬ',       val:'+'+fmt(avgDay),   col:'#FFB800', sub:'факт цього міс.'},
-        'costs':  {lbl:'ВИТРАТИ',          val:'-'+fmt(m.totalCosts), col:'#FF4545', sub:'фіксовані+разові'},
-        'proj':   {lbl:'ПРОГНОЗ/30',       val:projPoints.length>0?fmtS(Math.round(projPoints[projPoints.length-1].v)):'-', col:'#A78BFA', sub:'до кінця місяця'},
-        'paid':   {lbl:t('paidStatus'),         val:fmt((state.paidExpenses||[]).filter(p=>p.month===chartMo).reduce((s,p)=>s+p.amount,0)), col:'#4fc58c', sub:'рахунків закрито'},
-        'l3g':    {lbl:'3 МІС. BRUTTO',    val:'+'+fmt(last3),    col:'#FFB800', sub:'сума за 3 міс.'},
-        'l6g':    {lbl:'6 МІС. BRUTTO',    val:'+'+fmt(last6total), col:'#FFB800', sub:'сума за 6 міс.'},
-        'l3n':    {lbl:'3 МІС. NETTO',     val:fmtS(last3net),    col:last3net>=0?'#4fc58c':'#FF4545', sub:'чистий за 3 міс.'},
-        'l6n':    {lbl:'6 МІС. NETTO',     val:fmtS(last6net),    col:last6net>=0?'#4fc58c':'#FF4545', sub:'чистий за 6 міс.'},
-        'avgmo':  {lbl:'СЕРЕД/МІСЯЦЬ',     val:fmtS(Math.round(last6net/6)), col:last6net>=0?'#4fc58c':'#FF4545', sub:'сер. за 6 міс.'},
-      };
-      const active=state.repMonthsWidgets||['netto','prev','brutto'];
-      const editing=_repMonthsEdit||false;
-      const allKeys=Object.keys(allWidgets);
-      return `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,.25);letter-spacing:.1em;">${t('indicators')}</span>
-        <button onclick="_repMonthsEdit=!(_repMonthsEdit||false);renderReports();" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:3px 9px;font-size:9px;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;">${editing?t('doneBtn'):t('changeBtn')}</button>
-      </div>
-      <div style="overflow-x:auto;scrollbar-width:none;margin-bottom:10px;padding-bottom:2px;-webkit-overflow-scrolling:touch;" ontouchstart="event.stopPropagation()">
-        <div style="display:flex;gap:6px;min-width:max-content;">
-          ${editing?
-            allKeys.map(k=>{
-              const w=allWidgets[k];
-              const on=active.includes(k);
-              return `<div onclick="toggleRepWidget('${k}')" style="cursor:pointer;background:${on?'rgba(79,197,140,.15)':'rgba(255,255,255,.04)'};border:1px solid ${on?'rgba(79,197,140,.3)':'rgba(255,255,255,.08)'};border-radius:12px;padding:8px 12px;min-width:90px;text-align:center;flex-shrink:0;">
-                <div style="font-size:7px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.07em;margin-bottom:3px;">${w.lbl}</div>
-                <div style="font-size:13px;font-weight:700;color:${on?w.col:'rgba(255,255,255,.2)'};font-variant-numeric:tabular-nums;">${w.val}</div>
-                <div style="font-size:8px;color:${on?'#4fc58c':'rgba(255,255,255,.2)'};margin-top:3px;">${on?'✓ додано':'+ додати'}</div>
-              </div>`;
-            }).join('')
-          :
-            active.map(k=>{
-              const w=allWidgets[k]; if(!w)return'';
-              return `<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:8px 12px;min-width:80px;text-align:center;flex-shrink:0;">
-                <div style="font-size:7px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.07em;margin-bottom:3px;">${w.lbl}</div>
-                <div style="font-size:14px;font-weight:700;color:${w.col};font-variant-numeric:tabular-nums;">${w.val}</div>
-                <div style="font-size:8px;color:rgba(255,255,255,.22);margin-top:1px;">${w.sub}</div>
-              </div>`;
-            }).join('')
-          }
-        </div>
-      </div>`;
-    })()}
-
-    <!-- CHART TOOLBAR -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-      <div style="font-size:11px;font-weight:700;color:#fff;">${moNames[chartMo.slice(5)]||chartMo.slice(5)} ${chartMo.slice(0,4)}</div>
-      <div style="display:flex;gap:5px;align-items:center;">
-        <button onclick="shiftChartMonth(-1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:rgba(255,255,255,.5);padding:4px 9px;font-size:9px;font-weight:600;cursor:pointer;font-family:inherit;">← ${moNames[String(cm===1?12:cm-1).padStart(2,'0')]}</button>
-        <button onclick="setChartZoom(2)" style="background:${_chartZoom>=2?'rgba(79,197,140,.15)':'rgba(255,255,255,.06)'};border:1px solid ${_chartZoom>=2?'rgba(79,197,140,.3)':'rgba(255,255,255,.09)'};border-radius:8px;color:${_chartZoom>=2?'#ffd27a':'rgba(255,255,255,.5)'};padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;">⊕</button>
-        <button onclick="setChartZoom(1)" style="background:${_chartZoom<=1?'rgba(79,197,140,.15)':'rgba(255,255,255,.06)'};border:1px solid ${_chartZoom<=1?'rgba(79,197,140,.3)':'rgba(255,255,255,.09)'};border-radius:8px;color:${_chartZoom<=1?'#ffd27a':'rgba(255,255,255,.5)'};padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;">⊖</button>
-        <button onclick="shiftChartMonth(1)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:rgba(255,255,255,.5);padding:4px 9px;font-size:9px;font-weight:600;cursor:pointer;font-family:inherit;">${moNames[String(cm===12?1:cm+1).padStart(2,'0')]} →</button>
-      </div>
-    </div>
-
-    <!-- CHART LEGEND — simple -->
-    <div style="display:flex;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:4px;font-size:8px;color:rgba(255,255,255,.4);">
-        <svg width="14" height="6"><line x1="0" y1="3" x2="14" y2="3" stroke="#4fc58c" stroke-width="2"/></svg>Факт
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;font-size:8px;color:rgba(255,255,255,.4);">
-        <svg width="14" height="6"><line x1="0" y1="3" x2="14" y2="3" stroke="#A78BFA" stroke-width="1.5" stroke-dasharray="3,2"/></svg>Прогноз
-      </div>
-      <div style="display:flex;align-items:center;gap:4px;font-size:8px;color:rgba(255,255,255,.4);">
-        <svg width="8" height="10"><rect x="1" y="0" width="6" height="10" fill="rgba(255,69,69,.3)" rx="1"/></svg>Витрата
-      </div>
-      ${behindPlan?`<div style="font-size:8px;color:#FF4545;font-weight:700;">❗Відстаєш від плану</div>`:''}
-    </div>
-
+    <div class="ds-card ds-pad" style="margin-bottom:10px">
+    <div class="rep-h" style="margin-bottom:12px"><b style="font-size:15px">Баланс по днях</b>
+      <div class="chips"><div class="chip" onclick="shiftChartMonth(-1)">‹ ${moNames[prevMo.slice(5)]||''}</div><div class="chip" onclick="shiftChartMonth(1)">${moNames[nextMo.slice(5)]||''} ›</div></div></div>
+    <div class="lgd"><span><i style="width:16px;height:3px;background:#f3b34a;border-radius:2px"></i>Факт</span><span><i style="width:16px;height:0;border-top:2px dashed #9a86d8"></i>Прогноз</span><span><i style="width:7px;height:11px;background:rgba(229,115,127,.5);border-radius:2px"></i>Платіж</span></div>
     <!-- SCROLLABLE SVG CHART -->
-    <div style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;margin-bottom:10px;">
+    <div class="mo-chart">
       <div id="chart-scroll" style="overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;" ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()">
         <div style="min-width:${totalW}px;">
           <svg width="${totalW}" height="${H+20}" viewBox="0 0 ${totalW} ${H+20}">
             <defs>
               <linearGradient id="gfm" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#4fc58c" stop-opacity=".18"/>
-                <stop offset="100%" stop-color="#4fc58c" stop-opacity="0"/>
+                <stop offset="0%" stop-color="#f3b34a" stop-opacity=".26"/>
+                <stop offset="100%" stop-color="#f3b34a" stop-opacity="0"/>
               </linearGradient>
             </defs>
 
@@ -2992,14 +2918,14 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
             ${yLabels.map(l=>{
               const isZero=Math.abs(l.v)<1;
               return `<line x1="${XPAD}" y1="${l.y.toFixed(1)}" x2="${(totalW-4)}" y2="${l.y.toFixed(1)}" stroke="${isZero?'rgba(255,100,100,.5)':'rgba(255,255,255,.05)'}" stroke-width="${isZero?2:1}" ${isZero?'stroke-dasharray="6,3"':''}/>
-              <text x="2" y="${(l.y+3).toFixed(1)}" font-size="7" fill="${isZero?'rgba(255,120,120,.8)':'rgba(255,255,255,.22)'}" font-family="Inter" ${isZero?'font-weight="bold"':''}>${l.v>=1000?(l.v/1000).toFixed(0)+'k':l.v<=-1000?(l.v/1000).toFixed(0)+'k':Math.round(l.v)}</text>`;
+              <text x="2" y="${(l.y+3).toFixed(1)}" font-size="7" fill="${isZero?'rgba(255,120,120,.8)':'rgba(255,255,255,.22)'}" font-family="Manrope" ${isZero?'font-weight="bold"':''}>${l.v>=1000?(l.v/1000).toFixed(0)+'k':l.v<=-1000?(l.v/1000).toFixed(0)+'k':Math.round(l.v)}</text>`;
             }).join('')}
 
             <!-- GREEN FILL -->
             ${greenFill?`<path d="${greenFill}" fill="url(#gfm)"/>`:''}
 
             <!-- GREEN LINE (actual) -->
-            ${greenPath?`<path d="${greenPath}" fill="none" stroke="#4fc58c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`:''}
+            ${greenPath?`<path d="${greenPath}" fill="none" stroke="#f3b34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`:''}
 
             <!-- RED BARS — drop FROM balance line level by expense amount -->
             ${(()=>{
@@ -3022,7 +2948,7 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
                 const label=zoom>=2?`-${fmt(amt)}`:'';
                 return `<rect x="${(dx-barW/2).toFixed(1)}" y="${yTo.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.abs(yFrom-yTo).toFixed(1)}" fill="rgba(255,69,69,.2)" rx="2"/>
                 <line x1="${dx.toFixed(1)}" y1="${yTo.toFixed(1)}" x2="${dx.toFixed(1)}" y2="${yFrom.toFixed(1)}" stroke="#FF4545" stroke-width="${zoom>=2?2:1.5}" opacity=".75"/>
-                ${label?`<text x="${(dx+3).toFixed(1)}" y="${(yTo-2).toFixed(1)}" font-size="6" fill="#FF4545" font-family="Inter">${label}</text>`:''}`;
+                ${label?`<text x="${(dx+3).toFixed(1)}" y="${(yTo-2).toFixed(1)}" font-size="6" fill="#FF4545" font-family="Manrope">${label}</text>`:''}`;
               }).join('');
             })()}
 
@@ -3033,7 +2959,7 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
               const startY=lastAct?toY(lastAct.cum):toY(projPoints[0].v);
               const pts=`M${startX.toFixed(1)},${startY.toFixed(1)} `+
                 projPoints.map(p=>`L${toX(p.d).toFixed(1)},${toY(p.v).toFixed(1)}`).join(' ');
-              return `<path d="${pts}" fill="none" stroke="#A78BFA" stroke-width="1.5" stroke-dasharray="5,3" stroke-linecap="round" opacity=".85"/>`;
+              return `<path d="${pts}" fill="none" stroke="#9a86d8" stroke-width="2" stroke-dasharray="5,4" stroke-linecap="round" opacity=".85"/>`;
             })()}
 
             <!-- INCOME JUMP ARROWS — vertical arrow UP on planned income days -->
@@ -3051,19 +2977,19 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
               // Arrow goes UP (yTo < yFrom since higher value = lower y coordinate)
               return `<line x1="${dx.toFixed(1)}" y1="${yFrom.toFixed(1)}" x2="${dx.toFixed(1)}" y2="${(yTo+8).toFixed(1)}" stroke="#4fc58c" stroke-width="2" opacity=".8"/>
               <polygon points="${dx},${yTo} ${(dx-5)},${(yTo+10)} ${(dx+5)},${(yTo+10)}" fill="#4fc58c" opacity=".85"/>
-              ${label?`<rect x="${(dx+6).toFixed(1)}" y="${(yTo-1).toFixed(1)}" width="${label.length*4.8+4}" height="11" fill="rgba(79,197,140,.2)" rx="3"/><text x="${(dx+8).toFixed(1)}" y="${(yTo+8).toFixed(1)}" font-size="7" fill="#ffd27a" font-family="Inter" font-weight="bold">${label}</text>`:''}`;
+              ${label?`<rect x="${(dx+6).toFixed(1)}" y="${(yTo-1).toFixed(1)}" width="${label.length*4.8+4}" height="11" fill="rgba(79,197,140,.2)" rx="3"/><text x="${(dx+8).toFixed(1)}" y="${(yTo+8).toFixed(1)}" font-size="7" fill="#ffd27a" font-family="Manrope" font-weight="bold">${label}</text>`:''}`;
             }).join('')}
 
             <!-- WARNING BADGE if behind plan -->
             ${behindPlan&&lastAct?`
               <rect x="${(toX(lastAct.d)-10).toFixed(1)}" y="${(toY(lastAct.cum)-22).toFixed(1)}" width="20" height="16" fill="rgba(255,69,69,.2)" rx="4"/>
-              <text x="${toX(lastAct.d).toFixed(1)}" y="${(toY(lastAct.cum)-10).toFixed(1)}" font-size="11" fill="#FF4545" text-anchor="middle" font-family="Inter">!</text>
+              <text x="${toX(lastAct.d).toFixed(1)}" y="${(toY(lastAct.cum)-10).toFixed(1)}" font-size="11" fill="#FF4545" text-anchor="middle" font-family="Manrope">!</text>
             `:''}
 
             <!-- TODAY LINE + DOT -->
             ${lastAct?`
               <line x1="${toX(lastAct.d).toFixed(1)}" y1="${YPAD}" x2="${toX(lastAct.d).toFixed(1)}" y2="${(H-YPAD).toFixed(1)}" stroke="rgba(255,255,255,.13)" stroke-width="1" stroke-dasharray="3,3"/>
-              <circle cx="${toX(lastAct.d).toFixed(1)}" cy="${toY(lastAct.cum).toFixed(1)}" r="5" fill="#4fc58c" stroke="rgba(0,0,0,.5)" stroke-width="2"/>
+              <circle cx="${toX(lastAct.d).toFixed(1)}" cy="${toY(lastAct.cum).toFixed(1)}" r="5.5" fill="#f3b34a" stroke="#1a1f26" stroke-width="2.5"/>
             `:''}
 
             <!-- X AXIS LABELS -->
@@ -3076,14 +3002,14 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
               const hasInc=incomeOnDay[d]&&d>todayDayNum;
               const show=zoom>=2||(d===1||d%5===0||d===daysInMo||isToday||hasExp||hasInc);
               if(!show)return'';
-              const col=isToday?'#4fc58c':hasExp?'rgba(255,69,69,.7)':hasInc?'rgba(79,197,140,.8)':'rgba(255,255,255,.22)';
-              return `<text x="${dx.toFixed(1)}" y="${H+14}" font-size="${isToday?8.5:7}" fill="${col}" text-anchor="middle" font-family="Inter" ${isToday?'font-weight="bold"':''}>${d}${isToday?'✦':''}</text>`;
+              const col=isToday?'#f3b34a':hasExp?'rgba(255,69,69,.7)':hasInc?'rgba(79,197,140,.8)':'rgba(255,255,255,.22)';
+              return `<text x="${dx.toFixed(1)}" y="${H+14}" font-size="${isToday?8.5:7}" fill="${col}" text-anchor="middle" font-family="Manrope" ${isToday?'font-weight="bold"':''}>${d}${isToday?'✦':''}</text>`;
             }).join('')}
           </svg>
         </div>
       </div>
-      <div style="text-align:center;font-size:7.5px;color:rgba(255,255,255,.2);padding:4px 0 8px;">← свайп щоб гортати →</div>
-    </div>
+      <div style="text-align:center;font-size:10px;color:var(--ds-t3);padding:4px 0 6px;">← свайп щоб гортати →</div>
+    </div></div>
 
     <!-- STATUS BAR -->
     ${(()=>{
@@ -3097,13 +3023,12 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
       const urgentMsg=urgentBill
         ?`${nearestName} через ${daysLeft} дн. · треба +${fmt(perDay)} Kč/день`
         :`Потрібно +${fmt(dailyTarget)} Kč/день`;
-      return `<div style="background:rgba(255,69,69,.08);border:1px solid rgba(255,69,69,.2);border-radius:10px;padding:8px 12px;margin-bottom:10px;">
-        <div style="font-size:9px;font-weight:700;color:#FF4545;">❗ Відстаєш від плану</div>
-        <div style="font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;">${urgentMsg}</div>
-      </div>`;
+      return `<div class="mo-warn"><b>Відстаєш від плану</b><span>${urgentMsg}</span></div>`;
     })()}
-    <!-- HISTORY ACCORDION -->
-    ${histHTML}`;
+    <div class="ds-card ds-pad"><div class="rep-h"><b style="font-size:15px">Місяці</b><small>чисті</small></div>
+      ${last6Data.map(x=>{ const nm=x.calc.net, w=Math.max(3,Math.abs(nm)/maxNet*100), neg=nm<0;
+        return `<div class="mrow"><div class="nm">${moNames[x.mo.slice(5)]||x.mo.slice(5)}<small>${x.mo.slice(0,4)}</small></div><div class="tr"><i style="width:${w.toFixed(0)}%;background:${neg?'linear-gradient(90deg,#8c3a44,#e5737f)':'linear-gradient(90deg,#c98a1f,#f3b34a)'}"></i></div><div class="vl" style="color:${neg?'#ff9aa4':'var(--mint)'}">${fmtS(nm)}</div></div>`; }).join('')}
+    </div>`;
 }
 
 let _coverageExpanded=false;
@@ -3292,7 +3217,7 @@ function buildWeekHistory(){
         <div onclick="toggleWeekHist('${wid}')" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;">
           <div>
             <div style="font-size:13px;font-weight:600;color:#fff;">${fmtRange(wk.from,wk.to)}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:2px;">${wk.trips} поїздок · ${fmt(wk.km)} км</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:2px;">${fmt(wk.km)} км</div>
           </div>
           <div style="display:flex;align-items:center;gap:10px;">
             <span style="font-size:14px;font-weight:700;color:${col};">${fmtS(wk.netFull)} Kč</span>
@@ -3532,7 +3457,7 @@ ${(state.weeklyFixedCosts||[]).map(c=>`📆 ${c.name} (×4): -${fmt(c.amount*4)}
 ${mc.dph>0?`🧾 ПДВ 21%: -${fmt(mc.dph)} Kč\n`:''}${mc.incomeTax>0?`📋 Податок: -${fmt(mc.incomeTax)} Kč\n`:''}📉 Всього витрат: -${fmt(mc.totalCosts)} Kč
 
 ━━━━━━━━━━━━━━━━━━━━
-🚗 ${mc.trips} поїздок · ${fmt(mc.km)} км
+🚗 ${fmt(mc.km)} км
 ${mc.kph>0?`⏱ Дохід/год: ${fmt(mc.kph)} Kč\n`:''}━━━━━━━━━━━━━━━━━━━━
 💰 ЧИСТИЙ: ${fmtS(mc.net)} Kč
 ━━━━━━━━━━━━━━━━━━━━
@@ -4694,16 +4619,16 @@ function hTileInner(id,sz,D){
   }
   if(id==='today'){
     const pct=Math.round(td.pct||0), left=Math.max(0,goal-td.net), gross=td.boltGross+td.oneTimeInc;
-    const txt=`<div><small>СЬОГОДНІ</small><b class="n">${td.net<0?'−':''}${fmt(td.net)}</b><span class="gs">брутто ${fmt(gross)}${td.trips?` · ${td.trips} поїздок`:''}</span></div>`;
+    const txt=`<div><small>СЬОГОДНІ</small><b class="n">${td.net<0?'−':''}${fmt(td.net)}</b><span class="gs">брутто ${fmt(gross)}</span></div>`;
     if(S) return `<div class="hcol">${txt}<em>з ${fmt(goal)} · ${pct}%</em></div>`;
     if(W) return `<div class="hrow">${txt}<div style="text-align:right"><div style="display:flex;justify-content:flex-end">${hRing(pct,64,14)}</div><em style="margin-top:6px">з ${fmt(goal)}${left>0?` · ще ${fmt(left)}`:' · ціль!'}</em></div></div>`;
-    return `<div class="hcol">${txt}<div style="display:flex;justify-content:center">${hRing(pct,L?120:92,L?24:19)}</div><em>з ${fmt(goal)} · ${left>0?`ще ${fmt(left)} (${fmt(toGross(left))} брутто)`:'ціль виконано'}${L?` · ${td.trips} поїздок`:''}</em></div>`;
+    return `<div class="hcol">${txt}<div style="display:flex;justify-content:center">${hRing(pct,L?120:92,L?24:19)}</div><em>з ${fmt(goal)} · ${left>0?`ще ${fmt(left)} (${fmt(toGross(left))} брутто)`:'ціль виконано'}</em></div>`;
   }
   if(id==='week'){
     const v=w.netVarOnly, txt=`<div><small>ЦЕЙ ТИЖДЕНЬ</small><b class="n">${v<0?'−':'+'}${fmt(v)}</b><span class="gs">брутто ${fmt(w.gross)}</span></div>`;
-    if(S) return `<div class="hcol">${txt}<em>чисті · ${w.trips} поїздок</em></div>`;
+    if(S) return `<div class="hcol">${txt}<em>чисті</em></div>`;
     if(W) return `<div class="hrow" style="align-items:stretch">${txt}<div style="flex:1;max-width:46%;padding-top:4px">${hBars(wk)}</div></div>`;
-    return `<div class="hcol">${txt}<div style="flex:1;min-height:60px;padding:8px 0 6px">${hBars(wk)}</div><em>чисті · ${w.trips} поїздок</em></div>`;
+    return `<div class="hcol">${txt}<div style="flex:1;min-height:60px;padding:8px 0 6px">${hBars(wk)}</div><em>чисті</em></div>`;
   }
   if(id==='pay'){
     if(pay.none) return `<div class="hcol"><div><small>ПЛАТЕЖІ</small><b class="n" style="color:var(--mint)">—</b></div><em>платежів попереду немає</em></div>`;
