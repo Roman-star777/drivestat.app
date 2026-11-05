@@ -3560,20 +3560,6 @@ function renderProfileMain(){
       <div style="display:flex;gap:7px;margin-bottom:14px;">
         ${langs.map(l=>`<button onclick="setLang('${l.c}')" style="flex:1;padding:10px 4px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${(s.lang||'uk')===l.c?'rgba(0,227,138,.35)':'rgba(255,255,255,.08)'};background:${(s.lang||'uk')===l.c?'rgba(0,227,138,.12)':'rgba(255,255,255,.04)'};color:${(s.lang||'uk')===l.c?'#5FF0B0':'rgba(255,255,255,.4)'};">${l.f}<br>${l.n}</button>`).join('')}
       </div>
-      <div class="sec-lbl">${t('generalLabel')}</div>
-      <div class="st-group" style="margin-bottom:14px;">
-        <div class="st-row">
-          <div style="flex:1;"><div class="st-lbl">${t('forecastLabel')}</div></div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            ${['none','avg','goal'].map(m=>`<button onclick="toggleForecast('${m}')" style="padding:7px 10px;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${(s.forecastMode||'avg')===m?'rgba(255,196,0,.4)':'rgba(255,255,255,.08)'};background:${(s.forecastMode||'avg')===m?'rgba(255,196,0,.1)':'rgba(255,255,255,.04)'};color:${(s.forecastMode||'avg')===m?'#FFC400':'rgba(255,255,255,.4)'};">${m==='none'?t('forecastFact'):m==='avg'?t('forecastAvg'):t('forecastGoal')}</button>`).join('')}
-          </div>
-        </div>
-        <div class="st-row">
-          <div><div class="st-lbl">${t('rollover')}</div><div class="st-hint">${s.rolloverEnabled?'Залишок місяця переноситься':'Кожен місяць з нуля'}</div></div>
-          <label class="tog"><input type="checkbox" id="tog-rollover" ${s.rolloverEnabled?'checked':''} onchange="toggleRollover(this.checked)"><span class="tog-sl"></span></label>
-        </div>
-        ${s.rolloverEnabled&&(state.rolloverBalance||0)>0?`<div class="st-row"><span class="st-lbl">${t('rolloverFrom')}</span><span style="font-size:13px;font-weight:700;color:#34D399;">+${fmt(state.rolloverBalance)} Kč</span></div>`:''}
-      </div>
       <button class="btn-logout" onclick="logout()">${t('logout')}</button>
     `:''}
 
@@ -3973,11 +3959,11 @@ function addRecurring(){
 function toggleRollover(v){
   state.settings.rolloverEnabled=v;
   if(!v) state.rolloverBalance=0;
-  save(); renderProfile(); renderDash();
+  save(); renderProfile(); renderDash(); if(curTab==='plan') renderPlan();
 }
 function toggleForecast(mode){
   state.settings.forecastMode=mode;
-  save(); renderProfile(); renderDash();
+  save(); renderProfile(); renderDash(); if(curTab==='plan') renderPlan();
 }
 
 function addOneTimeIncome(){
@@ -4247,6 +4233,18 @@ function planMinRate(M){
   });
   return Math.ceil(need/10)*10;
 }
+function planOptsHTML(){
+  const st=state.settings, fm=st.forecastMode||'avg';
+  const opt=[['none','Тільки факт'],['avg','Середній'],['goal','Ціль']];
+  return `<div class="ds-card ds-pad" style="margin-bottom:14px">
+    <div style="font-size:13.5px;font-weight:800;margin-bottom:4px">Прогноз у платежах</div>
+    <div style="font-size:12px;color:var(--ds-t3);font-weight:600;line-height:1.4;margin-bottom:10px">Що враховувати в майбутніх днях: лише те, що вже заробив, твій середній заробіток або денну ціль.</div>
+    <div class="ds-seg" style="margin-bottom:12px">${opt.map(o=>`<button class="${fm===o[0]?'on':''}" onclick="toggleForecast('${o[0]}')">${o[1]}</button>`).join('')}</div>
+    <div style="display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid var(--ds-line)">
+      <div style="flex:1"><div style="font-size:13.5px;font-weight:800">Перенос залишку</div><div style="font-size:12px;color:var(--ds-t3);font-weight:600;margin-top:2px">${st.rolloverEnabled?'Залишок місяця переноситься':'Кожен місяць з нуля'}${st.rolloverEnabled&&(state.rolloverBalance||0)>0?` · з минулого +${fmt(state.rolloverBalance)} Kč`:''}</div></div>
+      <label class="tog"><input type="checkbox" ${st.rolloverEnabled?'checked':''} onchange="toggleRollover(this.checked)"><span class="tog-sl"></span></label>
+    </div></div>`;
+}
 function renderPlan(){
   try{
     const M=planModel(); _planM=M;
@@ -4265,6 +4263,7 @@ function renderPlan(){
         <input class="ds-rng" id="pl-rng" type="range" min="0" max="${maxR}" step="50" value="${_planRate}" oninput="planDraw(+this.value)">
         <div class="ds-presets">${presets.map(p=>`<button onclick="planDraw(${p[1]})">${p[0]}<br><span style="color:var(--ds-t3)">${fmt(p[1])}</span></button>`).join('')}</div>
       </div>
+      ${planOptsHTML()}
       <div class="ds-card ds-chart"><svg id="pl-chart" viewBox="0 0 400 230"></svg>
         <div class="ds-res"><div class="ds-inset"><small id="pl-l1">Після платежу</small><b id="pl-r1">—</b></div><div class="ds-inset"><small>Кінець місяця</small><b id="pl-r2">—</b></div></div>
       </div>
