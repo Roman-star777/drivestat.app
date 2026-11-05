@@ -1746,8 +1746,8 @@ function repData(from,to){
   o.days=days; return o;
 }
 function repRange(per){
-  if(per==='month'){ const t=today(), y=+t.slice(0,4), m=+t.slice(5,7); const last=new Date(y,m,0).getDate(); return [t.slice(0,8)+'01',t.slice(0,8)+String(last).padStart(2,'0')]; }
-  return getWeekRange();
+  if(per==='month'){ const mo=_chartMonth||todayMonth(), y=+mo.slice(0,4), m=+mo.slice(5,7); return [mo+'-01',mo+'-'+String(new Date(y,m,0).getDate()).padStart(2,'0')]; }
+  const [f,t]=getWeekRange(); return [dateAddDays(f,_repWeekOff*7),dateAddDays(t,_repWeekOff*7)];
 }
 function platDonut(bolt,uber,px,fs){
   const tot=bolt+uber, pu=tot>0?Math.round(uber/tot*100):0;
@@ -1768,11 +1768,12 @@ function repSegHTML(){
   return `<div class="repseg"><div class="${_repPer==='week'?'on':''}" onclick="_repPer='week';renderReports()">Тиждень</div><div class="${_repPer==='month'?'on':''}" onclick="_repPer='month';renderReports()">Місяць</div></div>`;
 }
 function repPeriodCardsHTML(){
-  const [from,to]=repRange(_repPer), R=repData(from,to), tot=R.bolt+R.uber;
+  const per=_repTab==='month'?'month':'week', [from,to]=repRange(per), R=repData(from,to), tot=R.bolt+R.uber;
   const gKm=R.km>0?R.inc/R.km:0, nKm=R.km>0?(R.inc-R.exp)/R.km:0;
   const mini=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
-  return `${repSegHTML()}
-  <div class="ds-card ds-pad" style="margin-bottom:10px"><div class="rep-h"><b>Платформи</b><small>${_repPer==='week'?'цей тиждень':'цей місяць'}</small></div>
+  const lbl=per==='week'?(_repWeekOff===0?'цей тиждень':from.slice(8)+'.'+from.slice(5,7)+' – '+to.slice(8)+'.'+to.slice(5,7)):'за місяць';
+  return `${per==='week'?`<div class="rep-h" style="margin:2px 2px 10px"><b style="font-size:16px">${_repWeekOff===0?'Цей тиждень':from.slice(8)+'.'+from.slice(5,7)+' – '+to.slice(8)+'.'+to.slice(5,7)}</b><div class="chips"><div class="chip" onclick="shiftRepWeek(-1)">‹ Раніше</div>${_repWeekOff<0?`<div class="chip" onclick="shiftRepWeek(1)">Далі ›</div>`:''}</div></div>`:''}
+  <div class="ds-card ds-pad" style="margin-bottom:10px"><div class="rep-h"><b>Платформи</b><small>${lbl}</small></div>
     <div style="display:flex;gap:16px;align-items:center">${platDonut(R.bolt,R.uber,92,14)}<div style="flex:1">${platLegend(R.bolt,R.uber)}<div class="rep-note">Uber вводиться вручну, Bolt автоматично</div></div></div></div>
   <div class="ds-card ds-pad" style="margin-bottom:10px"><div class="rep-h"><b>Дохід і витрати</b><small>по днях</small></div>
     ${incExpBars(R.days,96)}<div class="iekey"><span><i style="background:#f3b34a"></i>Дохід ${fmt(R.inc)}</span><span><i style="background:#d9606c"></i>Витрати ${fmt(R.exp)}</span></div></div>
@@ -2531,15 +2532,11 @@ function renderReports(){
   document.getElementById('tab-reports').innerHTML = `
     <!-- TABS -->
     <div class="rep-tabs">
-      <button class="rep-tab ${_repTab==='days'?'on':''}" onclick="_repTab='days';renderReports()">Дні</button>
-      <button class="rep-tab ${_repTab==='weeks'?'on':''}" onclick="_repTab='weeks';renderReports()">Тижні</button>
-      <button class="rep-tab ${_repTab==='months'?'on':''}" onclick="_repTab='months';renderReports()">Місяці</button>
+      <button class="rep-tab ${_repTab==='week'?'on':''}" onclick="_repTab='week';renderReports()">Тиждень</button>
+      <button class="rep-tab ${_repTab==='month'?'on':''}" onclick="_repTab='month';renderReports()">Місяць</button>
     </div>
 
-    ${_repTab==='days'?repPeriodCardsHTML():''}
-    ${_repTab==='days'?renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor):''}
-    ${_repTab==='months'?renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames):''}
-    ${_repTab==='weeks'?renderRepWeeks(w,m,pct,progColor):''}
+    ${repTabHTML(m,w,byDay,pct,progColor,histHTML,years,byYear,monthNames)}
   `;
   }catch(err){
     const el=document.getElementById('tab-reports');
@@ -2548,7 +2545,19 @@ function renderReports(){
   }
 }
 
-let _repTab='days';
+
+function repTabHTML(m,w,byDay,pct,progColor,histHTML,years,byYear,monthNames){
+  const per=_repTab==='month'?'month':'week', [rf,rt]=repRange(per);
+  const days=Object.keys(byDay).filter(d=>d>=rf&&d<=rt).sort().reverse();
+  const maxTotal=Math.max(...days.map(d=>byDay[d].bolt+byDay[d].other),1);
+  const list=renderRepDays(m,w,days,byDay,maxTotal,'','',pct,progColor);
+  if(per==='week') return repPeriodCardsHTML()+list;
+  const mm=calcMonth(_chartMonth||todayMonth()), pm=Math.min(100,mm.pct);
+  const parts=renderRepMonths(mm,pm,pm>=100?'#4fc58c':'#FFC400',histHTML,years,byYear,monthNames).split('<!--SPLIT-->');
+  return parts[0]+repPeriodCardsHTML()+(parts[1]||'')+list;
+}
+let _repTab='week', _repWeekOff=0;
+function shiftRepWeek(n){ _repWeekOff+=n; if(_repWeekOff>0)_repWeekOff=0; renderReports(); }
 
 function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
   return `
@@ -2593,7 +2602,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:${_pct>=1000?'8px':'10px'};font-weight:800;color:${_ringCol};">${_pct}%</div>
         </div>`;
         return `
-        <div style="background:#141620;border:1px solid rgba(255,255,255,.07);border-radius:14px;margin-bottom:7px;overflow:hidden;">
+        <div style="background:linear-gradient(170deg,#262c35,#1a1f26);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),inset 0 0 0 1px rgba(255,255,255,.05),0 10px 16px -12px #000;border-radius:18px;margin-bottom:8px;overflow:hidden;">
           <!-- Day header row - clickable -->
           <div onclick="toggleDayExpand('${d}')" style="display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer;user-select:none;">
             <div style="width:46px;flex-shrink:0;text-align:center;">
@@ -2603,7 +2612,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
             </div>
             <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
               <div style="height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;display:flex;gap:1px;">
-                ${day.bolt>0?`<div style="width:${boltW.toFixed(0)}%;height:100%;background:#4fc58c;border-radius:3px 0 0 3px;"></div>`:''}
+                ${day.bolt>0?`<div style="width:${boltW.toFixed(0)}%;height:100%;background:linear-gradient(90deg,#c98a1f,#f3b34a);border-radius:3px 0 0 3px;"></div>`:''}
                 ${day.other>0?`<div style="width:${otherW.toFixed(0)}%;height:100%;background:#4fc58c;"></div>`:''}
               </div>
             </div>
@@ -2664,7 +2673,7 @@ function renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor){
           ${!isExpanded?`
           <!-- Collapsed hint -->
           <div style="padding:0 13px 7px;display:flex;align-items:center;gap:5px;">
-            <span style="font-size:8px;color:rgba(255,255,255,.18);">${day.km>0?fmt(day.km)+' км':''}</span>
+
             ${_dphDay>0?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:5px;background:rgba(167,139,250,.1);color:#A78BFA;border:1px solid rgba(167,139,250,.2);margin-left:4px;">🧾 ПДВ −${fmt(_dphDay)} Kč</span>`:''}
             ${day.correction?`<span style="font-size:8px;color:#FB923C;font-weight:600;margin-left:4px;">✏️ корекція балансу</span>`:''}
             <span style="margin-left:auto;font-size:8px;color:rgba(79,197,140,.35);font-weight:600;">+ додати дохід</span>
@@ -2887,6 +2896,7 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
       <div class="mo-sub">${m.net>=0?'чистий прибуток місяця':'треба покрити '+fmt(m.totalCosts)+' Kč'}</div>
       <div class="rh-prog" style="margin-top:12px"><div class="rh-fill" style="width:${Math.max(2,pct).toFixed(0)}%;background:${m.net>=0?'linear-gradient(90deg,#c98a1f,#f3b34a)':'linear-gradient(90deg,#8c3a44,#e5737f)'};"></div></div>
     </div>
+    <!--SPLIT-->
     <div class="ds-card ds-pad" style="margin-bottom:10px">
     <div class="rep-h" style="margin-bottom:12px"><b style="font-size:15px">Баланс по днях</b>
       <div class="chips"><div class="chip" onclick="shiftChartMonth(-1)">‹ ${moNames[prevMo.slice(5)]||''}</div><div class="chip" onclick="shiftChartMonth(1)">${moNames[nextMo.slice(5)]||''} ›</div></div></div>
@@ -3025,10 +3035,7 @@ function renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames){
         :`Потрібно +${fmt(dailyTarget)} Kč/день`;
       return `<div class="mo-warn"><b>Відстаєш від плану</b><span>${urgentMsg}</span></div>`;
     })()}
-    <div class="ds-card ds-pad"><div class="rep-h"><b style="font-size:15px">Місяці</b><small>чисті</small></div>
-      ${last6Data.map(x=>{ const nm=x.calc.net, w=Math.max(3,Math.abs(nm)/maxNet*100), neg=nm<0;
-        return `<div class="mrow"><div class="nm">${moNames[x.mo.slice(5)]||x.mo.slice(5)}<small>${x.mo.slice(0,4)}</small></div><div class="tr"><i style="width:${w.toFixed(0)}%;background:${neg?'linear-gradient(90deg,#8c3a44,#e5737f)':'linear-gradient(90deg,#c98a1f,#f3b34a)'}"></i></div><div class="vl" style="color:${neg?'#ff9aa4':'var(--mint)'}">${fmtS(nm)}</div></div>`; }).join('')}
-    </div>`;
+    `;
 }
 
 let _coverageExpanded=false;
@@ -4173,7 +4180,7 @@ function reportTeaserHTML(){
   return `<div class="ds-sec"><h3>Звіт тижня</h3></div>
   <div class="ds-card ds-link" onclick="openWeekReport()"><span class="ds-ico">📝</span><div class="t"><b>${ttl}</b><span>Мінімум на день: ${fmt(r.minGrossDay)} Kč брутто · відкрити звіт</span></div><span style="color:var(--ds-t3);font-size:22px">›</span></div>`;
 }
-function openWeekReport(){ _repTab='weeks'; showTab('reports'); }
+function openWeekReport(){ _repTab='week'; showTab('reports'); }
 
 // ── ПЛАН: що-якщо ──
 let _planRate=null, _planM=null;
