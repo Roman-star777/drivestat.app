@@ -691,12 +691,11 @@ input[type=range].ds-rng::-moz-range-thumb{width:30px;height:30px;border-radius:
 /* ══ ГОЛОВНА: плитки, що переміщуються ══ */
 .hg{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:118px;grid-auto-flow:row dense;gap:12px;margin-bottom:12px;position:relative}
 .ht{position:relative;overflow:hidden;border-radius:24px;padding:14px 15px;border:1px solid var(--ds-line);box-shadow:var(--ds-shadow);touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;transform-origin:0 0;min-width:0}
-.hs-S{}.hs-W{grid-column:span 2}.hs-T{grid-row:span 2}.hs-L{grid-column:span 2;grid-row:span 2}
 .ht .wm{position:absolute;right:-6px;bottom:-14px;font-size:70px;opacity:.12;filter:saturate(1.4);pointer-events:none}
-.hs-S .wm{font-size:52px;bottom:-10px}
+.ht.sm .wm{font-size:52px;bottom:-10px}
 .ht small{display:block;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--ds-t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ht b.n{display:block;font-size:26px;font-weight:800;letter-spacing:-.03em;margin:5px 0 2px;line-height:1;font-variant-numeric:tabular-nums}
-.hs-L b.n,.hs-T b.n{font-size:32px}
+.ht.big b.n{font-size:32px}
 .ht em{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:var(--ds-t2);line-height:1.3}
 .ht .gs{display:block;font-size:11.5px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:100%}
@@ -723,7 +722,12 @@ input[type=range].ds-rng::-moz-range-thumb{width:30px;height:30px;border-radius:
 @keyframes hpop{from{opacity:0;scale:.7}to{opacity:1;scale:1}}
 .hbtn{position:absolute;top:8px;width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font:800 14px/1 'Manrope',sans-serif;z-index:5;backdrop-filter:blur(6px)}
 .hb-x{right:8px;background:rgba(255,69,58,.85);color:#fff}
-.hb-s{right:8px;top:auto;bottom:8px;background:rgba(255,255,255,.2);color:#fff}
+.hres{position:absolute;z-index:6;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer}
+.hres i{display:block;background:rgba(255,255,255,.55);border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.hr-r{right:0;top:50%;width:30px;height:64px;margin-top:-32px}.hr-r i{width:5px;height:30px}
+.hr-b{bottom:0;left:50%;height:30px;width:64px;margin-left:-32px}.hr-b i{width:30px;height:5px}
+.hr-c{right:0;bottom:0;width:40px;height:40px}.hr-c i{width:16px;height:16px;border-radius:0 0 12px 0;background:none;border-right:5px solid rgba(255,255,255,.8);border-bottom:5px solid rgba(255,255,255,.8);box-shadow:none;margin:0 -6px -6px 0}
+.ht.resizing{z-index:55;animation:none;box-shadow:0 0 0 2px rgba(95,240,176,.7),0 18px 34px -8px rgba(0,0,0,.7)}
 .hbtn{width:28px;height:28px}
 .hbar{border-radius:22px;padding:14px 16px;margin-bottom:14px}
 .hchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -2226,7 +2230,7 @@ function calcRingData(){
     nettoActual:Math.max(0,grossActual-vc.total)};
 }
 function renderDash(){
-  if(_drag&&_drag.started) return;
+  if((_drag&&_drag.started)||_res) return;
   initHomeGrid();
   try{
   const m=calcMonth(); const td=calcToday(); const w=calcWeek();
@@ -4561,9 +4565,13 @@ const H_PRESETS={
 let _hEdit=false, _drag=null, _hSaveT=null;
 function hTiles(){
   let a=state.settings.homeTiles;
-  if(!Array.isArray(a)||!a.length) a=state.settings.homeTiles=H_PRESETS.grid.t.map(x=>({id:x[0],size:x[1]}));
-  return a.filter(x=>H_META[x.id]&&H_SIZES.includes(x.size));
+  if(!Array.isArray(a)||!a.length) a=state.settings.homeTiles=H_PRESETS.grid.t.map(x=>hMk(x[0],x[1]));
+  a.forEach(x=>{ if(!x.w){ const m=S2WH[x.size]||S2WH.S; x.w=m[0]; x.h=m[1]; } delete x.size; });
+  return a.filter(x=>H_META[x.id]);
 }
+const S2WH={S:[1,1],W:[2,1],T:[1,2],L:[2,2]};
+function hMk(id,sz){ const m=S2WH[sz]||S2WH.S; return {id,w:m[0],h:m[1]}; }
+function hKey(w,h){ return w>=2?(h>=2?'L':'W'):(h>=2?'T':'S'); }
 function hSave(){ clearTimeout(_hSaveT); _hSaveT=setTimeout(save,400); }
 function homeData(){
   const m=calcMonth(), td=calcToday(), w=calcWeek(), rd=calcRingData();
@@ -4635,11 +4643,14 @@ function hTileInner(id,sz,D){
   }
   return '';
 }
+function hTileBody(t,D){
+  const M=H_META[t.id];
+  return `<span class="wm">${M.ico}</span>${hTileInner(t.id,hKey(t.w,t.h),D)}
+    ${_hEdit?`<button class="hbtn hb-x" aria-label="Прибрати" onclick="hHide('${t.id}')">✕</button><div class="hres hr-r" data-m="r"><i></i></div><div class="hres hr-b" data-m="b"><i></i></div><div class="hres hr-c" data-m="rb"><i></i></div>`:''}`;
+}
 function hTileHTML(t,D,pop){
   const M=H_META[t.id];
-  return `<div class="ht ${M.cls} hs-${t.size}${pop?' pop':''}" data-id="${t.id}">
-    <span class="wm">${M.ico}</span>${hTileInner(t.id,t.size,D)}
-    ${_hEdit?`<button class="hbtn hb-s" aria-label="Розмір" onclick="hSize('${t.id}')">⤢</button><button class="hbtn hb-x" aria-label="Прибрати" onclick="hHide('${t.id}')">✕</button>`:''}</div>`;
+  return `<div class="ht ${M.cls}${t.w<2&&t.h<2?' sm':''}${t.h>=2?' big':''}${pop?' pop':''}" data-id="${t.id}" style="grid-column:span ${t.w};grid-row:span ${t.h}">${hTileBody(t,D)}</div>`;
 }
 function homeGridHTML(){
   const D=homeData(), list=hTiles();
@@ -4647,7 +4658,7 @@ function homeGridHTML(){
   return `<div class="hg${_hEdit?' hedit':''}" id="hg">${list.map(t=>hTileHTML(t,D)).join('')}</div>
   ${_hEdit?`<div class="ds-card hbar">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:14px;font-weight:800">Вигляд Головної</div><button class="ds-btn" style="padding:10px 16px" onclick="hDone()">Готово</button></div>
-      <div style="font-size:12px;color:var(--ds-t3);font-weight:600;margin-top:6px;line-height:1.45">Тягни плитки, щоб змінити порядок. ⤢ змінює розмір, ✕ прибирає.</div>
+      <div style="font-size:12px;color:var(--ds-t3);font-weight:600;margin-top:6px;line-height:1.45">Тягни плитку, щоб змінити місце. Тягни за край чи кут, щоб змінити розмір: вниз розтягує вгору-вниз, вбік вширину. ✕ прибирає.</div>
       <div class="hchips">${Object.keys(H_PRESETS).map(k=>`<button class="hchip" onclick="hPreset('${k}')">Макет: ${H_PRESETS[k].n}</button>`).join('')}</div>
       ${hidden.length?`<div style="font-size:11px;letter-spacing:.08em;font-weight:800;color:var(--ds-t3);margin-top:14px">ДОДАТИ ПЛИТКУ</div><div class="hchips">${hidden.map(id=>`<button class="hchip add" onclick="hAdd('${id}')">＋ ${H_META[id].ico} ${H_META[id].ttl}</button>`).join('')}</div>`:''}
     </div>`:`<button class="hlink" onclick="hEdit()">✎ Змінити вигляд</button>`}`;
@@ -4674,13 +4685,9 @@ function homeRerender(popId){
 }
 function hEdit(){ _hEdit=true; if(navigator.vibrate) navigator.vibrate(12); homeRerender(); }
 function hDone(){ _hEdit=false; hSave(); homeRerender(); }
-function hSize(id){
-  const t=state.settings.homeTiles.find(x=>x.id===id); if(!t) return;
-  t.size=H_SIZES[(H_SIZES.indexOf(t.size)+1)%H_SIZES.length]; hSave(); homeRerender();
-}
 function hHide(id){ state.settings.homeTiles=state.settings.homeTiles.filter(x=>x.id!==id); hSave(); homeRerender(); }
-function hAdd(id){ state.settings.homeTiles.push({id,size:H_META[id].def}); hSave(); homeRerender(id); }
-function hPreset(k){ state.settings.homeTiles=H_PRESETS[k].t.map(x=>({id:x[0],size:x[1]})); hSave(); homeRerender(); }
+function hAdd(id){ state.settings.homeTiles.push(hMk(id,H_META[id].def)); hSave(); homeRerender(id); }
+function hPreset(k){ state.settings.homeTiles=H_PRESETS[k].t.map(x=>hMk(x[0],x[1])); hSave(); homeRerender(); }
 const H_ACT={cash:()=>toggleBalanceEdit(),today:()=>showTab('plan'),week:()=>showTab('reports'),pay:()=>showTab('plan'),shift:()=>toggleShift(),eff:()=>showTab('plan'),fc:()=>showTab('plan')};
 
 // ── жести: довге натискання → режим редагування; у ньому — перетягування ──
@@ -4688,11 +4695,14 @@ function initHomeGrid(){
   const root=document.getElementById('tab-dash'); if(!root||root._hInit) return; root._hInit=true;
   const scroller=document.getElementById('content');
   root.addEventListener('pointerdown',ev=>{
+    const rh=ev.target.closest('.hres');
+    if(rh&&_hEdit){ hStartResize(rh.closest('.ht'),rh.dataset.m,ev); ev.preventDefault(); return; }
     const el=ev.target.closest('.ht'); if(!el||ev.target.closest('.hbtn')||(ev.pointerType==='mouse'&&ev.button!==0)) return;
     _drag={el,id:el.dataset.id,sx:ev.clientX,sy:ev.clientY,x:ev.clientX,y:ev.clientY,pid:ev.pointerId,started:false,t0:Date.now(),lp:null,last:0};
     if(!_hEdit) _drag.lp=setTimeout(()=>{ if(_drag&&!_drag.started){ const d=_drag; _drag=null; hEdit(); void d; } },480);
   });
   root.addEventListener('pointermove',ev=>{
+    if(_res&&ev.pointerId===_res.pid){ ev.preventDefault(); hResizeMove(ev); return; }
     const d=_drag; if(!d||ev.pointerId!==d.pid) return;
     d.x=ev.clientX; d.y=ev.clientY;
     const mv=Math.hypot(d.x-d.sx,d.y-d.sy);
@@ -4701,6 +4711,7 @@ function initHomeGrid(){
     ev.preventDefault(); hPlace(d);
   },{passive:false});
   const end=ev=>{
+    if(_res&&ev.pointerId===_res.pid){ hResizeEnd(); return; }
     const d=_drag; if(!d||(ev.pointerId!==undefined&&ev.pointerId!==d.pid)) return;
     clearTimeout(d.lp); _drag=null;
     if(d.started){ hDrop(d); return; }
@@ -4708,6 +4719,50 @@ function initHomeGrid(){
   };
   root.addEventListener('pointerup',end); root.addEventListener('pointercancel',end);
   root.addEventListener('contextmenu',e=>{ if(e.target.closest('.ht')) e.preventDefault(); });
+}
+// ── розтягування плитки за край/кут ──
+let _res=null;
+function hMetrics(){
+  const g=document.getElementById('hg'), gap=12, rowH=118, W=g.getBoundingClientRect().width, colW=(W-gap)/2;
+  return {gap,rowH,W,colW,px:(w,h)=>[w*colW+(w-1)*gap,h*rowH+(h-1)*gap]};
+}
+function hStartResize(el,mode,ev){
+  const t=state.settings.homeTiles.find(x=>x.id===el.dataset.id); if(!t) return;
+  const M=hMetrics(), r=el.getBoundingClientRect();
+  _res={el,t,mode,pid:ev.pointerId,sx:ev.clientX,sy:ev.clientY,w0:r.width,h0:r.height,M};
+  try{ el.setPointerCapture(ev.pointerId); }catch(e){}
+  el.classList.add('resizing'); el.style.justifySelf='start'; el.style.alignSelf='start';
+  el.style.transition='none'; el.style.width=r.width+'px'; el.style.height=r.height+'px';
+  if(navigator.vibrate) navigator.vibrate(6);
+}
+function hResizeMove(ev){
+  const R=_res, M=R.M, el=R.el, t=R.t;
+  let nw=R.w0, nh=R.h0;
+  if(R.mode.includes('r')) nw=Math.max(M.colW*.8,Math.min(M.W,R.w0+(ev.clientX-R.sx)));
+  if(R.mode.includes('b')) nh=Math.max(M.rowH*.85,Math.min(3*M.rowH+2*M.gap+30,R.h0+(ev.clientY-R.sy)));
+  el.style.width=nw+'px'; el.style.height=nh+'px';
+  // у яку клітинку «прилипає»: з невеликим гістерезисом, щоб не смикалось
+  let w=t.w, h=t.h;
+  if(R.mode.includes('r')){ if(w===1&&nw>M.colW*1.5+M.gap) w=2; else if(w===2&&nw<M.colW*1.35) w=1; }
+  if(R.mode.includes('b')){ const tg=(nh+M.gap)/(M.rowH+M.gap); if(Math.abs(tg-h)>.62) h=Math.max(1,Math.min(3,Math.round(tg))); }
+  if(w!==t.w||h!==t.h){
+    const first=hRects(), key0=hKey(t.w,t.h);
+    t.w=w; t.h=h;
+    el.style.gridColumn='span '+w; el.style.gridRow='span '+h;
+    el.classList.toggle('sm',w<2&&h<2); el.classList.toggle('big',h>=2);
+    if(hKey(w,h)!==key0){ el.innerHTML=hTileBody(t,homeData()); }
+    hFlip(first);
+    if(navigator.vibrate) navigator.vibrate(4);
+  }
+}
+function hResizeEnd(){
+  const R=_res; _res=null; if(!R) return;
+  const el=R.el, M=hMetrics(), [pw,ph]=M.px(R.t.w,R.t.h);
+  try{ el.releasePointerCapture(R.pid); }catch(e){}
+  el.style.transition='width .24s cubic-bezier(.2,.9,.3,1.1),height .24s cubic-bezier(.2,.9,.3,1.1)';
+  el.style.width=pw+'px'; el.style.height=ph+'px';
+  setTimeout(()=>{ el.style.transition=''; el.style.width=''; el.style.height=''; el.style.justifySelf=''; el.style.alignSelf=''; el.classList.remove('resizing'); },270);
+  hSave();
 }
 function hStartDrag(d,ev){
   d.started=true; const el=d.el, grid=document.getElementById('hg');
