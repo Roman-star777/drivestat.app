@@ -707,6 +707,18 @@ input[type=range].ds-rng::-moz-range-thumb{width:30px;height:30px;border-radius:
 .c-shift{background:linear-gradient(160deg,#3c3550,#2a2539);border-color:rgba(154,134,216,.32)}.c-shift b.n{color:#d4c9f2}
 .c-eff{background:linear-gradient(160deg,#2c4056,#1f2d3d);border-color:rgba(120,170,220,.3)}.c-eff b.n{color:#b7d3f0}.c-eff .gs{color:#a9c3e4}
 .c-fc{background:linear-gradient(160deg,#46384f,#2f2536);border-color:rgba(190,150,200,.28)}.c-fc b.n{color:#ecd5f2}
+.c-plat{background:linear-gradient(160deg,#2b3340,#1f252e);border-color:rgba(143,183,232,.22)}.c-plat small{color:#a9c3e4}
+.c-inex{background:linear-gradient(160deg,#2a3038,#1c2128);border-color:rgba(143,183,232,.2)}.c-inex small{color:#a9c3e4}.c-inex b.n{color:#ffd98f}.c-inex .gs{color:#e5aab0}
+.hdonut{border-radius:50%;position:relative;flex:none;box-shadow:0 6px 14px -6px #000;display:flex;align-items:center;justify-content:center}
+.hdonut:after{content:"";position:absolute;inset:19%;border-radius:50%;background:#1d222a;box-shadow:inset 0 2px 5px rgba(0,0,0,.6)}.hdonut b{position:relative;z-index:2;font-weight:800;color:#fff}
+.hleg{font-size:12px;font-weight:700;color:var(--ds-t2)}.hleg div{display:flex;justify-content:space-between;align-items:center;padding:3px 0}.hleg i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px}.hleg b{color:#fff}
+.iebars{display:flex;align-items:flex-end;gap:7px;margin:8px 0 5px}.iebars.thin{gap:2px}.iebars>div{flex:1;display:flex;gap:2px;align-items:flex-end;height:100%}.iebars i{flex:1;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#f3b34a,#b57a1c);display:block}.iebars i+i{background:linear-gradient(180deg,#d9606c,#8c3a44)}.iebars .o{opacity:.35}.iebars .on i:first-child{box-shadow:0 0 10px rgba(243,179,74,.5)}
+.iedl{display:flex;gap:7px;font-size:10px;font-weight:700;color:var(--ds-t3)}.iedl span{flex:1;text-align:center}.iedl .on{color:#f3b34a}
+.iekey{display:flex;gap:14px;font-size:11px;font-weight:700;color:var(--ds-t2);margin-top:10px}.iekey i{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:5px}
+.repseg{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(0,0,0,.35);box-shadow:inset 0 2px 4px #000;margin-bottom:10px}.repseg div{flex:1;text-align:center;padding:8px 0;border-radius:10px;font-size:12px;font-weight:700;color:rgba(255,255,255,.45);cursor:pointer}.repseg .on{background:linear-gradient(180deg,#323a46,#262c35);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 8px -4px #000}
+.rep-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:14px}.rep-h small{font-size:11px;color:var(--ds-t3);font-weight:700}.rep-note{font-size:11px;color:var(--ds-t3);font-weight:600;margin-top:6px}
+.repmini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}.repmini div{border-radius:14px;padding:10px;background:rgba(0,0,0,.35);box-shadow:inset 0 2px 4px rgba(0,0,0,.5)}.repmini span{font-size:10px;font-weight:700;color:var(--ds-t3)}.repmini b{display:block;font-size:17px;margin-top:3px}
+.reprow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);font-size:13px;font-weight:700}.reprow small{display:block;color:var(--ds-t3);font-size:10px;margin-top:2px}
 .hring{border-radius:50%;background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(0,0,0,.4) 0);display:flex;align-items:center;justify-content:center;font-weight:800;position:relative;flex:none}
 .hring:before{content:'';position:absolute;inset:18%;border-radius:50%;background:#1d1708;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}.hring span{position:relative}
 .hbars{display:flex;align-items:flex-end;gap:4px;height:100%;min-height:36px}.hbars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#ffd27a,#c98a1f);display:block;min-height:3px}.hbars i.o{background:rgba(255,255,255,.12)}
@@ -1708,6 +1720,62 @@ function renderAlertCard(){
   })();
 }
 
+
+// ── ЗВІТ ПО ПЕРІОДУ: платформи, дохід/витрати по днях ──
+let _repPer='week';
+function repData(from,to){
+  const days=[], T=today(); let d=from;
+  const o={bolt:0,uber:0,inc:0,exp:0,km:0,hours:0,trips:0,dph:0,vc:0};
+  while(d<=to){
+    const fut=d>T, L=shiftDay(d);
+    const bolt=fut?0:boltForDay(d), uber=fut?0:uberForDay(d), inc=fut?0:dayEarned(d);
+    const km=fut?0:(L&&L.km>0?L.km:srcKmDay(d)), vc=calcVarCosts(km).total;
+    const man=(state.oneTimeExpenses||[]).filter(e=>e.date===d).reduce((a,e)=>a+(e.amount||0),0);
+    const dph=(!fut&&state.settings.dphEnabled)?dphFromNetto(inc):0;
+    const trips=fut?0:ordersForDay(d).length, hours=(L&&L.hours)||0;
+    days.push({d,inc,exp:vc+man+dph,fut});
+    o.bolt+=bolt; o.uber+=uber; o.inc+=inc; o.exp+=vc+man+dph; o.km+=km; o.hours+=hours; o.trips+=trips; o.dph+=dph; o.vc+=vc;
+    d=dateAddDays(d,1);
+  }
+  o.days=days; return o;
+}
+function repRange(per){
+  if(per==='month'){ const t=today(), y=+t.slice(0,4), m=+t.slice(5,7); const last=new Date(y,m,0).getDate(); return [t.slice(0,8)+'01',t.slice(0,8)+String(last).padStart(2,'0')]; }
+  return getWeekRange();
+}
+function platDonut(bolt,uber,px,fs){
+  const tot=bolt+uber, pu=tot>0?Math.round(uber/tot*100):0;
+  const bg=tot>0?`conic-gradient(#9a86d8 0 ${pu}%,#5fb5a3 ${pu}% 100%)`:'rgba(255,255,255,.08)';
+  return `<div class="hdonut" style="width:${px}px;height:${px}px;background:${bg}"><b style="font-size:${fs}px">${tot>0?Math.max(pu,100-pu)+'%':'—'}</b></div>`;
+}
+function platLegend(bolt,uber){
+  const tot=bolt+uber, pc=v=>tot>0?Math.round(v/tot*100):0;
+  return `<div class="hleg"><div><span><i style="background:#9a86d8"></i>Uber</span><b>${fmt(uber)}</b></div><div><span><i style="background:#5fb5a3"></i>Bolt</span><b>${fmt(bolt)}</b></div></div>`;
+}
+function incExpBars(days,tall){
+  const mx=Math.max(1,...days.map(x=>Math.max(x.inc,x.exp))), names=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'], T=today();
+  const best=Math.max(...days.map(x=>x.inc)), thin=days.length>8;
+  return `<div class="iebars${thin?' thin':''}" style="height:${tall}px">${days.map(x=>`<div class="${x.fut?'o':''}${x.inc===best&&best>0?' on':''}"><i style="height:${x.fut?4:Math.max(3,x.inc/mx*100)}%"></i><i style="height:${x.fut?0:Math.max(x.exp>0?3:0,x.exp/mx*100)}%"></i></div>`).join('')}</div>
+  ${thin?'':`<div class="iedl">${days.map((x,i)=>`<span class="${x.d===T?'on':''}">${names[i%7]}</span>`).join('')}</div>`}`;
+}
+function repSegHTML(){
+  return `<div class="repseg"><div class="${_repPer==='week'?'on':''}" onclick="_repPer='week';renderReports()">Тиждень</div><div class="${_repPer==='month'?'on':''}" onclick="_repPer='month';renderReports()">Місяць</div></div>`;
+}
+function repPeriodCardsHTML(){
+  const [from,to]=repRange(_repPer), R=repData(from,to), tot=R.bolt+R.uber;
+  const gKm=R.km>0?R.inc/R.km:0, nKm=R.km>0?(R.inc-R.exp)/R.km:0;
+  const mini=(l,v)=>`<div><span>${l}</span><b>${v}</b></div>`;
+  return `${repSegHTML()}
+  <div class="ds-card ds-pad" style="margin-bottom:10px"><div class="rep-h"><b>Платформи</b><small>${_repPer==='week'?'цей тиждень':'цей місяць'}</small></div>
+    <div style="display:flex;gap:16px;align-items:center">${platDonut(R.bolt,R.uber,92,14)}<div style="flex:1">${platLegend(R.bolt,R.uber)}<div class="rep-note">Uber вводиться вручну, Bolt автоматично</div></div></div></div>
+  <div class="ds-card ds-pad" style="margin-bottom:10px"><div class="rep-h"><b>Дохід і витрати</b><small>по днях</small></div>
+    ${incExpBars(R.days,96)}<div class="iekey"><span><i style="background:#f3b34a"></i>Дохід ${fmt(R.inc)}</span><span><i style="background:#d9606c"></i>Витрати ${fmt(R.exp)}</span></div></div>
+  <div class="ds-card ds-pad" style="margin-bottom:12px"><div class="rep-h"><b>За період</b></div>
+    <div class="repmini">${mini('Поїздок',R.trips)}${mini('Пробіг',R.km?fmt(R.km)+' км':'—')}${mini('Годин',R.hours?Math.round(R.hours):'—')}</div>
+    <div class="reprow"><span>Чисті на км<small>після пального, зносу й ПДВ</small></span><b style="color:var(--mint)">${R.km>0?nKm.toFixed(1)+' Kč':'—'}</b></div>
+    <div class="reprow"><span>Брутто на км</span><b style="color:#8fb7e8">${R.km>0?gKm.toFixed(1)+' Kč':'—'}</b></div></div>`;
+}
+
 // ── WEEK COMPARE ──
 function calcPrevWeek(){
   const [from,to]=getWeekRange();
@@ -2462,6 +2530,7 @@ function renderReports(){
       <button class="rep-tab ${_repTab==='months'?'on':''}" onclick="_repTab='months';renderReports()">Місяці</button>
     </div>
 
+    ${_repTab==='days'?repPeriodCardsHTML():''}
     ${_repTab==='days'?renderRepDays(m,w,days,byDay,maxTotal,wFrom,wTo,pct,progColor):''}
     ${_repTab==='months'?renderRepMonths(m,pct,progColor,histHTML,years,byYear,monthNames):''}
     ${_repTab==='weeks'?renderRepWeeks(w,m,pct,progColor):''}
@@ -4557,6 +4626,8 @@ const H_META={
   shift:{ttl:'Зміна',ico:'🛣️',cls:'c-shift',def:'W'},
   eff:{ttl:'Kč на км і на годину',ico:'📈',cls:'c-eff',def:'S'},
   fc:{ttl:'Кінець місяця',ico:'🏁',cls:'c-fc',def:'S'},
+  plat:{ttl:'Платформи',ico:'🥧',cls:'c-plat',def:'W'},
+  inex:{ttl:'Дохід і витрати',ico:'📊',cls:'c-inex',def:'W'},
 };
 const H_PRESETS={
   grid:{n:'Сітка',t:[['cash','S'],['today','S'],['week','S'],['pay','S'],['shift','W']]},
@@ -4588,6 +4659,7 @@ function hTiles(){
   a.forEach(x=>{ if(!x.w){ const m=S2WH[x.size]||S2WH.S; x.w=m[0]; x.h=m[1]; } delete x.size; });
   a=state.settings.homeTiles=a.filter(x=>H_META[x.id]);
   if(a.some(x=>typeof x.x!=='number'||typeof x.y!=='number')){ const placed=[]; a.forEach(t=>{ const p=hSlot(placed,t.w,t.h); t.x=p.x; t.y=p.y; placed.push(t); }); }
+  if(!state.settings.homeNew1){ state.settings.homeNew1=1; ['plat','inex'].forEach(id=>{ if(!a.some(x=>x.id===id)){ const t=hMk(id,H_META[id].def), p=hSlot(a,t.w,t.h); t.x=p.x; t.y=p.y; a.push(t); } }); hSave(); }
   return a;
 }
 const S2WH={S:[1,1],W:[2,1],T:[1,2],L:[2,2]};
@@ -4606,7 +4678,8 @@ function homeData(){
   // дні поточного тижня (виплати за день)
   const [from]=getWeekRange(), wk=[];
   for(let i=0;i<7;i++){ const d=dateAddDays(from,i); wk.push(d<=today()?dayEarned(d):0); }
-  return {m,td,w,rd,pay,wk,goal:state.settings.dailyGoal||0};
+  const RW=repData(getWeekRange()[0],getWeekRange()[1]);
+  return {m,td,w,rd,pay,wk,RW,goal:state.settings.dailyGoal||0};
 }
 function hBars(wk){
   const mx=Math.max(1,...wk), names=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'], t=today(), [from]=getWeekRange();
@@ -4621,7 +4694,7 @@ function hTileInner(id,sz,D){
   }
   if(id==='today'){
     const pct=Math.round(td.pct||0), left=Math.max(0,goal-td.net), gross=td.boltGross+td.oneTimeInc;
-    const txt=`<div><small>СЬОГОДНІ</small><b class="n">${td.net<0?'−':''}${fmt(td.net)}</b><span class="gs">брутто ${fmt(gross)}</span></div>`;
+    const txt=`<div><small>СЬОГОДНІ</small><b class="n">${td.net<0?'−':''}${fmt(td.net)}</b><span class="gs">брутто ${fmt(gross)}${td.trips?` · ${td.trips} поїздок`:''}</span></div>`;
     if(S) return `<div class="hcol">${txt}<em>з ${fmt(goal)} · ${pct}%</em></div>`;
     if(W) return `<div class="hrow">${txt}<div style="text-align:right"><div style="display:flex;justify-content:flex-end">${hRing(pct,64,14)}</div><em style="margin-top:6px">з ${fmt(goal)}${left>0?` · ще ${fmt(left)}`:' · ціль!'}</em></div></div>`;
     return `<div class="hcol">${txt}<div style="display:flex;justify-content:center">${hRing(pct,L?120:92,L?24:19)}</div><em>з ${fmt(goal)} · ${left>0?`ще ${fmt(left)} (${fmt(toGross(left))} брутто)`:'ціль виконано'}${L?` · ${td.trips} поїздок`:''}</em></div>`;
@@ -4655,6 +4728,17 @@ function hTileInner(id,sz,D){
     const col=(l,a,b)=>`<div><small>${l}</small><b class="n">${a}</b><span class="gs">брутто ${b}</span></div>`;
     if(W) return `<div class="hrow">${col('НА КМ',E.nKm.toFixed(1),E.gKm.toFixed(1))}${col('НА ГОДИНУ',E.hours>0?fmt(E.nH):'—',E.hours>0?fmt(E.gH):'—')}</div>`;
     return `<div class="hcol">${col('НА КМ',E.nKm.toFixed(1),E.gKm.toFixed(1))}${col('НА ГОДИНУ',E.hours>0?fmt(E.nH):'—',E.hours>0?fmt(E.gH):'—')}<em>${E.hours>0?E.kmh.toFixed(0)+' км/год · ':''}${fmt(E.km/E.days)} км/день · ${E.days} дн.</em></div>`;
+  }
+  if(id==='plat'){
+    const R=D.RW, big=(T||L)?96:(S?64:78);
+    if(S) return `<div class="hcol"><div><small>ПЛАТФОРМИ</small></div><div style="display:flex;justify-content:center">${platDonut(R.bolt,R.uber,big,12)}</div><em>тиждень</em></div>`;
+    if(W) return `<div class="hrow" style="align-items:center;gap:14px">${platDonut(R.bolt,R.uber,big,13)}<div style="flex:1;min-width:0"><small>ПЛАТФОРМИ · ТИЖДЕНЬ</small>${platLegend(R.bolt,R.uber)}</div></div>`;
+    return `<div class="hcol"><div><small>ПЛАТФОРМИ · ТИЖДЕНЬ</small></div><div style="display:flex;justify-content:center">${platDonut(R.bolt,R.uber,big,16)}</div>${platLegend(R.bolt,R.uber)}</div>`;
+  }
+  if(id==='inex'){
+    const R=D.RW;
+    if(S) return `<div class="hcol"><div><small>ДОХІД / ВИТРАТИ</small><b class="n" style="font-size:20px">${fmt(R.inc)}</b><span class="gs">витрати ${fmt(R.exp)}</span></div></div>`;
+    return `<div class="hcol"><div><small>ДОХІД І ВИТРАТИ · ТИЖДЕНЬ</small></div><div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end">${incExpBars(R.days,(T||L)?110:54)}</div></div>`;
   }
   if(id==='fc'){
     const M=planModel(), r=M.goal>0?M.goal:M.avgNet, end=planBal(M,M.dim,r);
