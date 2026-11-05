@@ -688,6 +688,49 @@ input[type=range].ds-rng::-moz-range-thumb{width:30px;height:30px;border-radius:
 .ds-tile{padding:14px 15px;min-width:0}.ds-tile small{display:block;font-size:12px;font-weight:700;color:var(--ds-t3)}
 .ds-tile b{display:block;font-size:26px;font-weight:800;margin:6px 0 3px;letter-spacing:-.03em;line-height:1.05}
 .ds-tile em{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:var(--ds-t2);line-height:1.35}
+/* ══ ГОЛОВНА: плитки, що переміщуються ══ */
+.hg{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:118px;grid-auto-flow:row dense;gap:12px;margin-bottom:12px;position:relative}
+.ht{position:relative;overflow:hidden;border-radius:24px;padding:14px 15px;border:1px solid var(--ds-line);box-shadow:var(--ds-shadow);touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:pointer;transform-origin:0 0;min-width:0}
+.hs-S{}.hs-W{grid-column:span 2}.hs-T{grid-row:span 2}.hs-L{grid-column:span 2;grid-row:span 2}
+.ht .wm{position:absolute;right:-6px;bottom:-14px;font-size:70px;opacity:.12;filter:saturate(1.4);pointer-events:none}
+.hs-S .wm{font-size:52px;bottom:-10px}
+.ht small{display:block;font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--ds-t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ht b.n{display:block;font-size:26px;font-weight:800;letter-spacing:-.03em;margin:5px 0 2px;line-height:1;font-variant-numeric:tabular-nums}
+.hs-L b.n,.hs-T b.n{font-size:32px}
+.ht em{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:var(--ds-t2);line-height:1.3}
+.ht .gs{display:block;font-size:11.5px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:100%}
+.hcol{display:flex;flex-direction:column;justify-content:space-between;height:100%}
+.c-cash{background:linear-gradient(160deg,#16294a,#0c1730);border-color:rgba(110,160,255,.28)}.c-cash b.n{color:#9cc2ff}
+.c-day{background:linear-gradient(160deg,#3a2c0c,#1b1405);border-color:rgba(255,200,87,.3)}.c-day b.n{color:var(--gold)}.c-day .gs{color:var(--mint)}
+.c-week{background:linear-gradient(160deg,#0f3a2c,#07201a);border-color:rgba(52,224,169,.3)}.c-week b.n{color:var(--mint)}.c-week .gs{color:#8bd9bd}
+.c-pay{background:linear-gradient(160deg,#3d1713,#1c0a08);border-color:rgba(255,111,97,.35)}.c-pay b.n{color:var(--coral)}.c-pay .gs{color:#ffa89f}
+.c-shift{background:linear-gradient(160deg,#2a1a4a,#130b26);border-color:rgba(169,139,255,.32)}.c-shift b.n{color:#c9b4ff}
+.c-eff{background:linear-gradient(160deg,#0d3340,#06191f);border-color:rgba(90,200,230,.3)}.c-eff b.n{color:#7fe0f5}.c-eff .gs{color:#8bd9bd}
+.c-fc{background:linear-gradient(160deg,#2f2447,#150f22);border-color:rgba(200,160,255,.28)}.c-fc b.n{color:#e0c8ff}
+.hring{border-radius:50%;background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(0,0,0,.4) 0);display:flex;align-items:center;justify-content:center;font-weight:800;position:relative;flex:none}
+.hring:before{content:'';position:absolute;inset:18%;border-radius:50%;background:#1d1708;box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}.hring span{position:relative}
+.hbars{display:flex;align-items:flex-end;gap:4px;height:100%;min-height:36px}.hbars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#5ff0b0,#1e8f6a);display:block;min-height:3px}.hbars i.o{background:rgba(255,255,255,.12)}
+.hdays{display:inline-block;padding:4px 10px;border-radius:99px;font-size:11.5px;font-weight:800;color:#2a0f0c;background:linear-gradient(180deg,#ff9b8f,#ff6f61);box-shadow:0 3px 0 #b3382c}
+.hpl{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:700;color:var(--ds-t2);padding:4px 0;border-top:1px solid rgba(255,255,255,.07)}.hpl b{color:#fff;font-variant-numeric:tabular-nums}
+.hpill{display:inline-block;padding:8px 14px;border-radius:12px;font-size:12.5px;font-weight:800;color:#1c0e3a;background:linear-gradient(180deg,#d7c6ff,#a98bff);box-shadow:0 3px 0 #6b4fc2}
+/* режим редагування */
+.hedit .ht{touch-action:none;cursor:grab;animation:hjig .32s ease-in-out infinite alternate}
+.hedit .ht:nth-child(2n){animation-delay:-.16s}
+@keyframes hjig{from{rotate:-.7deg}to{rotate:.7deg}}
+.ht.dragging{animation:none;z-index:60;box-shadow:0 26px 40px -8px rgba(0,0,0,.75),0 0 0 2px rgba(95,240,176,.6);cursor:grabbing;opacity:.97}
+.ht.pop{animation:hpop .3s cubic-bezier(.2,1.3,.4,1)}
+@keyframes hpop{from{opacity:0;scale:.7}to{opacity:1;scale:1}}
+.hbtn{position:absolute;top:8px;width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font:800 14px/1 'Manrope',sans-serif;z-index:5;backdrop-filter:blur(6px)}
+.hb-x{right:8px;background:rgba(255,69,58,.85);color:#fff}
+.hb-s{right:8px;top:auto;bottom:8px;background:rgba(255,255,255,.2);color:#fff}
+.hbtn{width:28px;height:28px}
+.hbar{border-radius:22px;padding:14px 16px;margin-bottom:14px}
+.hchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.hchip{border:1px solid var(--ds-line);background:linear-gradient(180deg,var(--ds-r2),var(--ds-r1));color:var(--ds-t2);font:800 12.5px 'Manrope',sans-serif;padding:9px 13px;border-radius:12px;cursor:pointer}
+.hchip.add{color:var(--mint)}
+.hlink{display:block;margin:2px auto 14px;background:none;border:none;color:var(--ds-t3);font:800 12.5px 'Manrope',sans-serif;padding:8px;cursor:pointer}
+.hero2 .q{font-size:13px;font-weight:700;color:var(--ds-t2);display:flex;justify-content:space-between;gap:8px}
 </style>
 </head>
 <body>
@@ -2183,6 +2226,8 @@ function calcRingData(){
     nettoActual:Math.max(0,grossActual-vc.total)};
 }
 function renderDash(){
+  if(_drag&&_drag.started) return;
+  initHomeGrid();
   try{
   const m=calcMonth(); const td=calcToday(); const w=calcWeek();
   const s=state.settings;
@@ -2290,8 +2335,8 @@ function renderDash(){
       `}
     </div>`:''}
 
-    ${dashTilesHTML(m,td,w,rd)}
-    ${shiftCardHTML()}
+    ${_shiftOpen?shiftCardHTML():''}
+    <div id="hgwrap">${homeGridHTML()}</div>
     ${state.lastSync?`<div class="hint-txt">Дані з Bolt · ${state.lastSync}</div>`:`<div class="hint-txt">${t('noData')}</div>`}
   `;
   }catch(err){
@@ -4018,33 +4063,6 @@ function grossBreakdown(net){
 function monthNameUk(){ return new Date().toLocaleDateString('uk-UA',{month:'long'}); }
 function dsSign(n){ return (n<0?'−':'+')+fmt(n); }
 
-// ── ГОЛОВНА: «залишилось заробити» ──
-function goalCardHTML(m){
-  const need=m.totalCosts, earned=m.gross, G=_grossMode;
-  const remaining=Math.max(0,need-earned);
-  const cov=need>0?Math.min(100,earned/need*100):100;
-  const dLeft=daysLeftInMonth();
-  const done=remaining<=0;
-  const noCosts=need<=0;
-  const big=done?Math.max(0,m.net):gv(remaining);
-  const lbl=noCosts?'Витрат на місяць ще немає'
-    :done?'Місяць покрито — чистий залишок'
-    :(G?'Треба набрати брутто до кінця місяця':'Залишилось заробити за '+monthNameUk());
-  const grad=(done||cov>=60)?'linear-gradient(90deg,#1fbd8c,#6df0c3)':'linear-gradient(90deg,#ffb93b,#ffd873)';
-  const ln=done
-    ?`Витрати покриті на <b>${Math.round(cov)}%</b>. Все понад норму — твій чистий прибуток.`
-    :`Це <b>${fmt(gv(remaining/dLeft))} Kč на день</b> протягом ${dLeft} дн. Витрати місяця покриті на <b>${Math.round(cov)}%</b>.`;
-  const note=G?`<div class="ds-gnote ds-inset"><b>Брутто</b> — сума виплат Bolt (як вона показується в додатку), з якої ще піде ПДВ і пальне. Саме стільки треба набрати, щоб лишилась ця сума чистими.</div>`:'';
-  return `<div class="ds-card ds-goal">
-    <div class="q">${lbl}</div>
-    <div class="ds-mode"><button class="${G?'':'on'}" onclick="setGrossMode(false)">Чисті</button><button class="${G?'on':''}" onclick="setGrossMode(true)">Брутто</button></div>
-    <div class="big" style="color:${done?'var(--mint)':'#fff'}">${fmt(big)}<small>Kč</small></div>
-    <div class="ln">${ln}</div>
-    ${note}
-    <div class="ds-bar"><i style="width:${cov.toFixed(0)}%;background:${grad}"></i></div>
-    <div class="legend"><span>Заробив <b>${fmt(earned)}</b></span><span>Треба <b>${fmt(need)}</b></span></div>
-  </div>`;
-}
 
 // ── ГОЛОВНА: сьогодні ──
 function todayCardHTML(td){
@@ -4068,33 +4086,6 @@ function todayCardHTML(td){
 }
 
 
-// ── ГОЛОВНА (варіант B): 4 плитки ──
-function dashTilesHTML(m,td,w,rd){
-  const G=_grossMode;
-  const bal=rd.netActual;
-  const goal=td.goal||0, pct=Math.round(td.pct||0);
-  const tcol=pct>=100?'var(--mint)':pct>=60?'var(--gold)':'var(--coral)';
-  const earned=G?(td.boltGross+td.oneTimeInc):td.net;
-  const target=G?toGross(goal):goal;
-  const wk=w.netVarOnly;
-  const up=calcUpcoming().filter(u=>!isPaid(u.dueDay))[0];
-  let pay;
-  if(up){
-    const have=Math.max(0,up.balanceBefore+up.recurringForPeriod+up.oneTimeForPeriod-up.oneTimeExpForPeriod);
-    const short=Math.max(0,up.total-have);
-    const nm=up.costs.map(c=>c.name).join(' + ');
-    const when=up.daysUntil===0?'сьогодні':`через ${up.daysUntil} дн.`;
-    pay=short>0
-      ?`<b class="num" style="color:var(--coral)">−${fmt(gv(short))}</b><em>бракує · ${when} · ${nm}${G?' · брутто':''}</em>`
-      :`<b class="num" style="color:var(--mint)">Вистачає</b><em>${fmt(up.total)} Kč · ${when} · ${nm}</em>`;
-  } else pay=`<b class="num" style="color:var(--mint)">—</b><em>платежів попереду немає</em>`;
-  return `<div class="ds-g2">
-    <div class="ds-card ds-tile" onclick="toggleBalanceEdit()" style="cursor:pointer"><small>💰 На руках</small><b class="num">${bal<0?'−':''}${fmt(bal)}</b><em>Kč зараз · ✎ змінити</em></div>
-    <div class="ds-card ds-tile"><small>Сьогодні${G?' · брутто':''}</small><b class="num" style="color:${tcol}">${(!G&&earned<0)?'−':''}${fmt(earned)}</b><em>з ${fmt(target)} · ${pct}%</em></div>
-    <div class="ds-card ds-tile"><small>Цей тиждень</small><b class="num" style="color:${wk>=0?'var(--mint)':'var(--coral)'}">${wk<0?'−':'+'}${fmt(wk)}</b><em>чисті · ${w.trips} поїздок</em></div>
-    <div class="ds-card ds-tile"><small>⏰ Найближчий платіж</small>${pay}</div>
-  </div>`;
-}
 
 // ── ГОЛОВНА: найближчий платіж ──
 function nextPayCardHTML(){
@@ -4526,6 +4517,242 @@ function kmPlanHTML(){
     </div></div>`;
 }
 
+// ═══════════ ГОЛОВНА: верхня картка (чисті + брутто разом) ═══════════
+function goalCardHTML(m){
+  const need=m.totalCosts, earned=m.gross;
+  const remaining=Math.max(0,need-earned);
+  const cov=need>0?Math.min(100,earned/need*100):100;
+  const dLeft=daysLeftInMonth();
+  const done=remaining<=0, noCosts=need<=0;
+  const grad=(done||cov>=60)?'linear-gradient(90deg,#1fbd8c,#6df0c3)':'linear-gradient(90deg,#ffb93b,#ffd873)';
+  if(noCosts||done){
+    return `<div class="ds-card ds-goal hero2">
+      <div class="q"><span>${noCosts?'Витрат на місяць ще немає':'Місяць покрито — чистий залишок'}</span></div>
+      <div class="big" style="color:var(--mint)">${fmt(Math.max(0,m.net))}<small>Kč чисті</small></div>
+      <div class="ln">≈ <b style="color:var(--mint)">${fmt(toGross(Math.max(0,m.net)))} Kč</b> брутто · покриття витрат <b>${Math.round(cov)}%</b></div>
+      <div class="ds-bar"><i style="width:100%;background:${grad}"></i></div></div>`;
+  }
+  return `<div class="ds-card ds-goal hero2">
+    <div class="q"><span>Залишилось заробити за ${monthNameUk()}</span><span style="color:var(--ds-t3)">${dLeft} дн.</span></div>
+    <div class="big" style="color:var(--gold)">${fmt(remaining)}<small>Kč чисті</small></div>
+    <div class="ln" style="margin-bottom:12px"><b style="color:var(--mint);font-size:16px">≈ ${fmt(toGross(remaining))} Kč брутто</b></div>
+    <div class="ds-inset" style="padding:10px 14px;display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:700;color:var(--ds-t2);margin-bottom:12px"><span>На день</span><span><b style="color:var(--gold)">${fmt(remaining/dLeft)}</b> чисті · <b style="color:var(--mint)">${fmt(toGross(remaining/dLeft))}</b> брутто</span></div>
+    <div class="ds-bar"><i style="width:${cov.toFixed(0)}%;background:${grad}"></i></div>
+    <div class="legend"><span>Заробив <b>${fmt(earned)}</b></span><span>Треба <b>${fmt(need)}</b> · покрито ${Math.round(cov)}%</span></div>
+  </div>`;
+}
+
+// ═══════════ ГОЛОВНА: плитки, які можна переміщати й змінювати ═══════════
+const H_SIZES=['S','W','T','L'];
+const H_META={
+  cash:{ttl:'На руках',ico:'💰',cls:'c-cash',def:'S'},
+  today:{ttl:'Сьогодні',ico:'🎯',cls:'c-day',def:'S'},
+  week:{ttl:'Тиждень',ico:'📅',cls:'c-week',def:'S'},
+  pay:{ttl:'Найближчий платіж',ico:'⏰',cls:'c-pay',def:'S'},
+  shift:{ttl:'Зміна',ico:'🛣️',cls:'c-shift',def:'W'},
+  eff:{ttl:'Kč на км і на годину',ico:'📈',cls:'c-eff',def:'S'},
+  fc:{ttl:'Кінець місяця',ico:'🏁',cls:'c-fc',def:'S'},
+};
+const H_PRESETS={
+  grid:{n:'Сітка',t:[['cash','S'],['today','S'],['week','S'],['pay','S'],['shift','W']]},
+  wide:{n:'Широка',t:[['today','W'],['cash','S'],['pay','S'],['week','W'],['shift','W']]},
+  mosaic:{n:'Мозаїка',t:[['today','T'],['cash','S'],['pay','S'],['week','W'],['shift','W']]},
+};
+let _hEdit=false, _drag=null, _hSaveT=null;
+function hTiles(){
+  let a=state.settings.homeTiles;
+  if(!Array.isArray(a)||!a.length) a=state.settings.homeTiles=H_PRESETS.grid.t.map(x=>({id:x[0],size:x[1]}));
+  return a.filter(x=>H_META[x.id]&&H_SIZES.includes(x.size));
+}
+function hSave(){ clearTimeout(_hSaveT); _hSaveT=setTimeout(save,400); }
+function homeData(){
+  const m=calcMonth(), td=calcToday(), w=calcWeek(), rd=calcRingData();
+  const up=calcUpcoming().filter(u=>!isPaid(u.dueDay));
+  let pay={none:true,list:[]};
+  if(up.length){
+    const u=up[0], have=Math.max(0,u.balanceBefore+u.recurringForPeriod+u.oneTimeForPeriod-u.oneTimeExpForPeriod);
+    pay={none:false,short:Math.max(0,u.total-have),total:u.total,days:u.daysUntil,nm:u.costs.map(c=>c.name).join(' + '),
+         list:up.slice(0,3).map(x=>({d:x.dueDay,total:x.total,nm:x.costs.map(c=>c.name).join(' + ')}))};
+  }
+  // дні поточного тижня (виплати за день)
+  const [from]=getWeekRange(), wk=[];
+  for(let i=0;i<7;i++){ const d=dateAddDays(from,i); wk.push(d<=today()?dayEarned(d):0); }
+  return {m,td,w,rd,pay,wk,goal:state.settings.dailyGoal||0};
+}
+function hBars(wk){
+  const mx=Math.max(1,...wk), names=['Пн','Вт','Ср','Чт','Пт','Сб','Нд'], t=today(), [from]=getWeekRange();
+  return `<div style="display:flex;flex-direction:column;height:100%;min-height:50px"><div class="hbars" style="flex:1">${wk.map((v,i)=>`<i class="${dateAddDays(from,i)>t?'o':''}" style="height:${dateAddDays(from,i)>t?14:Math.max(8,v/mx*100)}%"></i>`).join('')}</div><div style="display:flex;justify-content:space-between;font-size:9.5px;font-weight:700;color:var(--ds-t3);margin-top:3px">${names.map(n=>`<span>${n}</span>`).join('')}</div></div>`;
+}
+function hRing(p,px,fs){ return `<div class="hring" style="--p:${Math.min(100,p)};width:${px}px;height:${px}px;font-size:${fs}px"><span>${Math.round(p)}%</span></div>`; }
+function hTileInner(id,sz,D){
+  const {td,w,pay,wk,goal}=D, bal=D.rd.netActual;
+  const S=sz==='S', W=sz==='W', T=sz==='T', L=sz==='L';
+  if(id==='cash'){
+    return `<div class="hcol"><div><small>НА РУКАХ</small><b class="n">${bal<0?'−':''}${fmt(bal)}</b><em>Kč зараз</em></div>${(T||L)?'<em style="color:var(--ds-t3)">Тапни, щоб виправити суму</em>':''}</div>`;
+  }
+  if(id==='today'){
+    const pct=Math.round(td.pct||0), left=Math.max(0,goal-td.net), gross=td.boltGross+td.oneTimeInc;
+    const txt=`<div><small>СЬОГОДНІ</small><b class="n">${td.net<0?'−':''}${fmt(td.net)}</b><span class="gs">брутто ${fmt(gross)}</span></div>`;
+    if(S) return `<div class="hcol">${txt}<em>з ${fmt(goal)} · ${pct}%</em></div>`;
+    if(W) return `<div class="hrow">${txt}<div style="text-align:right"><div style="display:flex;justify-content:flex-end">${hRing(pct,64,14)}</div><em style="margin-top:6px">з ${fmt(goal)}${left>0?` · ще ${fmt(left)}`:' · ціль!'}</em></div></div>`;
+    return `<div class="hcol">${txt}<div style="display:flex;justify-content:center">${hRing(pct,L?120:92,L?24:19)}</div><em>з ${fmt(goal)} · ${left>0?`ще ${fmt(left)} (${fmt(toGross(left))} брутто)`:'ціль виконано'}${L?` · ${td.trips} поїздок`:''}</em></div>`;
+  }
+  if(id==='week'){
+    const v=w.netVarOnly, txt=`<div><small>ЦЕЙ ТИЖДЕНЬ</small><b class="n">${v<0?'−':'+'}${fmt(v)}</b><span class="gs">брутто ${fmt(w.gross)}</span></div>`;
+    if(S) return `<div class="hcol">${txt}<em>чисті · ${w.trips} поїздок</em></div>`;
+    if(W) return `<div class="hrow" style="align-items:stretch">${txt}<div style="flex:1;max-width:46%;padding-top:4px">${hBars(wk)}</div></div>`;
+    return `<div class="hcol">${txt}<div style="flex:1;min-height:60px;padding:8px 0 6px">${hBars(wk)}</div><em>чисті · ${w.trips} поїздок</em></div>`;
+  }
+  if(id==='pay'){
+    if(pay.none) return `<div class="hcol"><div><small>ПЛАТЕЖІ</small><b class="n" style="color:var(--mint)">—</b></div><em>платежів попереду немає</em></div>`;
+    const ok=pay.short<=0, when=pay.days===0?'сьогодні':`${pay.days} дн.`;
+    const main=ok?`<b class="n" style="color:var(--mint)">Вистачає</b><span class="gs">${fmt(pay.total)} Kč</span>`
+                 :`<b class="n">−${fmt(pay.short)}</b><span class="gs">брутто −${fmt(toGross(pay.short))}</span>`;
+    if(S) return `<div class="hcol"><div><small>${pay.nm} · ${when}</small>${main}</div></div>`;
+    if(W) return `<div class="hrow"><div style="min-width:0"><small>${pay.nm}</small>${main}</div><div style="text-align:right"><span class="hdays">${when}</span><em style="margin-top:6px">${ok?'є чим платити':'бракує'}</em></div></div>`;
+    return `<div class="hcol"><div><small>${pay.nm} · <span style="color:var(--coral)">${when}</span></small>${main}</div><div>${pay.list.map(x=>`<div class="hpl"><span>${x.d}-го · ${x.nm}</span><b>−${fmt(x.total)}</b></div>`).join('')}</div></div>`;
+  }
+  if(id==='shift'){
+    const L0=shiftDay(today()), ub=uberForDay(today());
+    const line=L0?`${fmt(L0.km)} км${L0.hours?` · ${L0.hours} год`:''}${ub?` · Uber ${fmt(ub)}`:''}`:'Запиши км, години й дохід Uber';
+    if(S) return `<div class="hcol"><div><small>ЗМІНА</small><b class="n" style="font-size:20px;margin-top:8px">${L0?fmt(L0.km)+' км':'Записати'}</b></div><em>${L0?'запис є · ✎':'+ зміна'}</em></div>`;
+    if(W) return `<div class="hrow"><div style="min-width:0"><small>ЗМІНА СЬОГОДНІ</small><em style="margin-top:6px;font-size:13px;color:#fff">${line}</em></div><span class="hpill">${L0?'Змінити':'Записати'}</span></div>`;
+    return `<div class="hcol"><div><small>ЗМІНА СЬОГОДНІ</small><em style="margin-top:8px;font-size:13px;color:#fff">${line}</em></div><div><span class="hpill">${L0?'Змінити':'Записати'}</span></div></div>`;
+  }
+  if(id==='eff'){
+    const E=calcEfficiency(30);
+    if(!E.days) return `<div class="hcol"><div><small>KČ НА КМ</small><b class="n">—</b></div><em>запиши зміну з км</em></div>`;
+    if(S) return `<div class="hcol"><div><small>ЧИСТІ НА КМ</small><b class="n">${E.nKm.toFixed(1)}</b><span class="gs">брутто ${E.gKm.toFixed(1)}</span></div><em>Kč · ${E.days} дн.</em></div>`;
+    const col=(l,a,b)=>`<div><small>${l}</small><b class="n">${a}</b><span class="gs">брутто ${b}</span></div>`;
+    if(W) return `<div class="hrow">${col('НА КМ',E.nKm.toFixed(1),E.gKm.toFixed(1))}${col('НА ГОДИНУ',E.hours>0?fmt(E.nH):'—',E.hours>0?fmt(E.gH):'—')}</div>`;
+    return `<div class="hcol">${col('НА КМ',E.nKm.toFixed(1),E.gKm.toFixed(1))}${col('НА ГОДИНУ',E.hours>0?fmt(E.nH):'—',E.hours>0?fmt(E.gH):'—')}<em>${E.hours>0?E.kmh.toFixed(0)+' км/год · ':''}${fmt(E.km/E.days)} км/день · ${E.days} дн.</em></div>`;
+  }
+  if(id==='fc'){
+    const M=planModel(), r=M.goal>0?M.goal:M.avgNet, end=planBal(M,M.dim,r);
+    const col=end<0?'var(--coral)':'#e0c8ff';
+    if(S) return `<div class="hcol"><div><small>КІНЕЦЬ МІСЯЦЯ</small><b class="n" style="color:${col}">${end<0?'−':'+'}${fmt(end)}</b></div><em>якщо ${fmt(r)}/день</em></div>`;
+    return `<div class="hrow"><div><small>НА КІНЕЦЬ МІСЯЦЯ</small><b class="n" style="color:${col}">${end<0?'−':'+'}${fmt(end)}</b><em>Kč, якщо заробляти ${fmt(r)}/день</em></div></div>`;
+  }
+  return '';
+}
+function hTileHTML(t,D,pop){
+  const M=H_META[t.id];
+  return `<div class="ht ${M.cls} hs-${t.size}${pop?' pop':''}" data-id="${t.id}">
+    <span class="wm">${M.ico}</span>${hTileInner(t.id,t.size,D)}
+    ${_hEdit?`<button class="hbtn hb-s" aria-label="Розмір" onclick="hSize('${t.id}')">⤢</button><button class="hbtn hb-x" aria-label="Прибрати" onclick="hHide('${t.id}')">✕</button>`:''}</div>`;
+}
+function homeGridHTML(){
+  const D=homeData(), list=hTiles();
+  const hidden=Object.keys(H_META).filter(id=>!list.some(t=>t.id===id));
+  return `<div class="hg${_hEdit?' hedit':''}" id="hg">${list.map(t=>hTileHTML(t,D)).join('')}</div>
+  ${_hEdit?`<div class="ds-card hbar">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:14px;font-weight:800">Вигляд Головної</div><button class="ds-btn" style="padding:10px 16px" onclick="hDone()">Готово</button></div>
+      <div style="font-size:12px;color:var(--ds-t3);font-weight:600;margin-top:6px;line-height:1.45">Тягни плитки, щоб змінити порядок. ⤢ змінює розмір, ✕ прибирає.</div>
+      <div class="hchips">${Object.keys(H_PRESETS).map(k=>`<button class="hchip" onclick="hPreset('${k}')">Макет: ${H_PRESETS[k].n}</button>`).join('')}</div>
+      ${hidden.length?`<div style="font-size:11px;letter-spacing:.08em;font-weight:800;color:var(--ds-t3);margin-top:14px">ДОДАТИ ПЛИТКУ</div><div class="hchips">${hidden.map(id=>`<button class="hchip add" onclick="hAdd('${id}')">＋ ${H_META[id].ico} ${H_META[id].ttl}</button>`).join('')}</div>`:''}
+    </div>`:`<button class="hlink" onclick="hEdit()">✎ Змінити вигляд</button>`}`;
+}
+// анімація переміщення (FLIP): запам'ятовуємо прямокутники → змінюємо → плавно доїжджаємо
+function hRects(){ const o={}; document.querySelectorAll('#hg .ht').forEach(e=>{ if(e!==_drag?.el) o[e.dataset.id]=e.getBoundingClientRect(); }); return o; }
+function hFlip(first,skipId){
+  document.querySelectorAll('#hg .ht').forEach(e=>{
+    const f=first[e.dataset.id]; if(!f||e===_drag?.el) return;
+    const l=e.getBoundingClientRect(), dx=f.left-l.left, dy=f.top-l.top, sx=f.width/l.width, sy=f.height/l.height;
+    if(Math.abs(dx)<1&&Math.abs(dy)<1&&Math.abs(sx-1)<.01&&Math.abs(sy-1)<.01) return;
+    e.style.transition='none'; e.style.transform=`translate(${dx}px,${dy}px) scale(${sx},${sy})`;
+    e.getBoundingClientRect();
+    e.style.transition='transform .3s cubic-bezier(.2,.8,.2,1)'; e.style.transform='';
+    setTimeout(()=>{ e.style.transition=''; },340);
+  });
+}
+function homeRerender(popId){
+  const wrap=document.getElementById('hgwrap'); if(!wrap) return;
+  const first=hRects();
+  wrap.innerHTML=homeGridHTML();
+  if(popId){ const e=wrap.querySelector(`.ht[data-id="${popId}"]`); if(e) e.classList.add('pop'); }
+  hFlip(first);
+}
+function hEdit(){ _hEdit=true; if(navigator.vibrate) navigator.vibrate(12); homeRerender(); }
+function hDone(){ _hEdit=false; hSave(); homeRerender(); }
+function hSize(id){
+  const t=state.settings.homeTiles.find(x=>x.id===id); if(!t) return;
+  t.size=H_SIZES[(H_SIZES.indexOf(t.size)+1)%H_SIZES.length]; hSave(); homeRerender();
+}
+function hHide(id){ state.settings.homeTiles=state.settings.homeTiles.filter(x=>x.id!==id); hSave(); homeRerender(); }
+function hAdd(id){ state.settings.homeTiles.push({id,size:H_META[id].def}); hSave(); homeRerender(id); }
+function hPreset(k){ state.settings.homeTiles=H_PRESETS[k].t.map(x=>({id:x[0],size:x[1]})); hSave(); homeRerender(); }
+const H_ACT={cash:()=>toggleBalanceEdit(),today:()=>showTab('plan'),week:()=>showTab('reports'),pay:()=>showTab('plan'),shift:()=>toggleShift(),eff:()=>showTab('plan'),fc:()=>showTab('plan')};
+
+// ── жести: довге натискання → режим редагування; у ньому — перетягування ──
+function initHomeGrid(){
+  const root=document.getElementById('tab-dash'); if(!root||root._hInit) return; root._hInit=true;
+  const scroller=document.getElementById('content');
+  root.addEventListener('pointerdown',ev=>{
+    const el=ev.target.closest('.ht'); if(!el||ev.target.closest('.hbtn')||(ev.pointerType==='mouse'&&ev.button!==0)) return;
+    _drag={el,id:el.dataset.id,sx:ev.clientX,sy:ev.clientY,x:ev.clientX,y:ev.clientY,pid:ev.pointerId,started:false,t0:Date.now(),lp:null,last:0};
+    if(!_hEdit) _drag.lp=setTimeout(()=>{ if(_drag&&!_drag.started){ const d=_drag; _drag=null; hEdit(); void d; } },480);
+  });
+  root.addEventListener('pointermove',ev=>{
+    const d=_drag; if(!d||ev.pointerId!==d.pid) return;
+    d.x=ev.clientX; d.y=ev.clientY;
+    const mv=Math.hypot(d.x-d.sx,d.y-d.sy);
+    if(!_hEdit){ if(mv>9){ clearTimeout(d.lp); _drag=null; } return; }
+    if(!d.started){ if(mv<7) return; hStartDrag(d,ev); }
+    ev.preventDefault(); hPlace(d);
+  },{passive:false});
+  const end=ev=>{
+    const d=_drag; if(!d||(ev.pointerId!==undefined&&ev.pointerId!==d.pid)) return;
+    clearTimeout(d.lp); _drag=null;
+    if(d.started){ hDrop(d); return; }
+    if(ev.type==='pointerup'&&!_hEdit&&Date.now()-d.t0<460&&Math.hypot(d.x-d.sx,d.y-d.sy)<9){ const f=H_ACT[d.id]; if(f) f(); }
+  };
+  root.addEventListener('pointerup',end); root.addEventListener('pointercancel',end);
+  root.addEventListener('contextmenu',e=>{ if(e.target.closest('.ht')) e.preventDefault(); });
+}
+function hStartDrag(d,ev){
+  d.started=true; const el=d.el, grid=document.getElementById('hg');
+  try{ el.setPointerCapture(d.pid); }catch(e){}
+  const r=el.getBoundingClientRect(); d.gx=d.sx-r.left; d.gy=d.sy-r.top;
+  el.classList.add('dragging'); el.style.transition='none'; if(navigator.vibrate) navigator.vibrate(8);
+  d.raf=requestAnimationFrame(function loop(){
+    if(!_drag||_drag!==d) return;
+    const sc=document.getElementById('content'), b=sc.getBoundingClientRect();
+    let v=0; if(d.y<b.top+90) v=-14; else if(d.y>b.bottom-130) v=14;
+    if(v){ sc.scrollTop+=v; hPlace(d); }
+    d.raf=requestAnimationFrame(loop);
+  });
+}
+function hPlace(d){
+  const el=d.el, grid=document.getElementById('hg'); if(!grid) return;
+  const gr=grid.getBoundingClientRect();
+  const tx=d.x-d.gx-gr.left-el.offsetLeft, ty=d.y-d.gy-gr.top-el.offsetTop;
+  el.style.transform=`translate(${tx}px,${ty}px) scale(1.04)`;
+  // над яким місцем курсор → міняємо порядок
+  const now=Date.now(); if(now-d.last<140) return;
+  const tiles=[...grid.querySelectorAll('.ht')].filter(e=>e!==el);
+  let over=null;
+  for(const e of tiles){ const r=e.getBoundingClientRect(); if(d.x>r.left&&d.x<r.right&&d.y>r.top&&d.y<r.bottom){ over=e; break; } }
+  if(!over) return;
+  const arr=state.settings.homeTiles, from=arr.findIndex(x=>x.id===d.id), to=arr.findIndex(x=>x.id===over.dataset.id);
+  if(from<0||to<0||from===to) return;
+  d.last=now;
+  const first=hRects();
+  const [it]=arr.splice(from,1); arr.splice(to,0,it);
+  if(from<to) over.after(el); else over.before(el);
+  hFlip(first);
+  const gr2=grid.getBoundingClientRect();
+  el.style.transform=`translate(${d.x-d.gx-gr2.left-el.offsetLeft}px,${d.y-d.gy-gr2.top-el.offsetTop}px) scale(1.04)`;
+}
+function hDrop(d){
+  const el=d.el; cancelAnimationFrame(d.raf);
+  try{ el.releasePointerCapture(d.pid); }catch(e){}
+  el.classList.remove('dragging');
+  el.style.transition='transform .26s cubic-bezier(.2,.9,.3,1.2)'; el.style.transform='';
+  setTimeout(()=>{ el.style.transition=''; },300);
+  if(navigator.vibrate) navigator.vibrate(6);
+  hSave();
+}
+
 // ── TABS ──
 let curTab='dash';
 function showTab(name){
@@ -4534,6 +4761,7 @@ function showTab(name){
   document.getElementById('tab-'+name).classList.add('active');
   const _nb=document.getElementById('nav-'+name); if(_nb) _nb.classList.add('active');
   curTab=name;
+  if(name!=='dash') _hEdit=false;
   if(name!=='profile') _profTab='main';
   // у формах витрат/доходів однакові id — тримаємо в DOM лише одну вкладку
   if(name!=='profile') document.getElementById('tab-profile').innerHTML='';

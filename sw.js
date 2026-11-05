@@ -2,7 +2,7 @@
 // Стратегія: network-first для HTML (щоб бачити оновлення),
 // fallback на кеш якщо мережа недоступна.
 
-const CACHE = 'drivestat-v12';
+const CACHE = 'drivestat-v13';
 const OFFLINE_URLS = [
   './',
   './index.html'
