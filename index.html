@@ -1712,8 +1712,7 @@ function scheduleNotif(){
 // ── HEADER BUTTON ──
 function headerBtnClick(){
   if(curTab==='profile'){
-    if(_pTab==='auto') saveAutoSettings();
-    else saveMainSettings();
+    saveAutoSettings();
   } else syncBolt();
 }
 function updateHeaderBtn(){
@@ -3543,27 +3542,14 @@ function renderProfileMain(){
       <div><div class="usr-name">${state.user}</div><div class="usr-role">DriveStat · ${isAdmin()?'Admin':'Driver'}</div></div>
     </div>
 
-    <!-- 4-TAB NAVIGATION -->
-    <div style="display:flex;background:rgba(0,0,0,.25);border-radius:16px;margin-bottom:14px;padding:4px;gap:2px;">
-      <button onclick="_pTab='settings';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='settings'?'rgba(0,227,138,.15)':'none'};border:${_pTab==='settings'?'1px solid rgba(0,227,138,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='settings'?'#5FF0B0':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <div style="font-size:8px;font-weight:700;color:${_pTab==='settings'?'#5FF0B0':'rgba(255,255,255,.35)'};">${t('tabSettings')}</div>
-      </button>
-      <button onclick="_pTab='auto';renderProfile();" style="flex:1;padding:9px 4px 8px;text-align:center;background:${_pTab==='auto'?'rgba(0,227,138,.15)':'none'};border:${_pTab==='auto'?'1px solid rgba(0,227,138,.25)':'1px solid transparent'};border-radius:12px;cursor:pointer;font-family:inherit;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${_pTab==='auto'?'#5FF0B0':'rgba(255,255,255,.35)'}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 4px;"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
-        <div style="font-size:8px;font-weight:700;color:${_pTab==='auto'?'#5FF0B0':'rgba(255,255,255,.35)'};">${t('tabAuto')}</div>
-      </button>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <span class="sec-lbl" style="margin:0;">${t('langLabel')}</span>
+      <div style="display:inline-flex;padding:3px;border-radius:12px;background:rgba(0,0,0,.35);box-shadow:inset 0 2px 5px rgba(0,0,0,.5);gap:2px;">
+        ${langs.map(l=>{const on=(s.lang||'uk')===l.c;return `<button onclick="setLang('${l.c}')" aria-label="${l.n}" style="padding:6px 11px;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;border:none;background:${on?'linear-gradient(180deg,#6df0c3,#2bc795)':'none'};color:${on?'#05301f':'rgba(255,255,255,.5)'};">${l.f} ${l.n}</button>`}).join('')}
+      </div>
     </div>
 
-    ${_pTab==='settings'?`
-      <div class="sec-lbl">${t('langLabel')}</div>
-      <div style="display:flex;gap:7px;margin-bottom:14px;">
-        ${langs.map(l=>`<button onclick="setLang('${l.c}')" style="flex:1;padding:10px 4px;border-radius:12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid ${(s.lang||'uk')===l.c?'rgba(0,227,138,.35)':'rgba(255,255,255,.08)'};background:${(s.lang||'uk')===l.c?'rgba(0,227,138,.12)':'rgba(255,255,255,.04)'};color:${(s.lang||'uk')===l.c?'#5FF0B0':'rgba(255,255,255,.4)'};">${l.f}<br>${l.n}</button>`).join('')}
-      </div>
-      <button class="btn-logout" onclick="logout()">${t('logout')}</button>
-    `:''}
-
-    ${_pTab==='auto'?`
+    ${`
       <div class="sec-panel" style="border-left:3px solid rgba(160,170,185,.4);margin-bottom:14px;">
         <div class="sec-panel-hd"><span class="sec-panel-ico">⛽</span><span class="sec-panel-ttl">${t('fuelSection')}</span></div>
         <div class="st-row" style="border-bottom:1px solid rgba(255,255,255,.05);padding:10px 0;"><div><div class="st-lbl">${t('fuelPrice')}</div><div class="st-hint">${t('fuelPriceHint')}</div></div><input class="st-inp" id="st-fuel-p" type="number" value="${s.fuelPrice}"></div>
@@ -3630,7 +3616,7 @@ function renderProfileMain(){
       <div class="st-card"><div><div class="st-lbl">${t('incomeTax')}</div><div class="st-hint">${s.incomeTaxEnabled?`${s.incomeTaxRate||15}%`:'Вимкнено'}</div></div>
         <label class="tog"><input type="checkbox" ${s.incomeTaxEnabled?'checked':''} onchange="toggleTax(this.checked)"><span class="tog-sl"></span></label></div>
       <button class="btn-logout" onclick="logout()" style="margin-top:14px;">${t('logout')}</button>
-    `:''}
+    `}
   `;
 }
 
